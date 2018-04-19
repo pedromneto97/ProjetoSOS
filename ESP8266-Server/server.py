@@ -22,13 +22,13 @@ class Server:
 
     def servidor(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind(('127.0.0.1', 5003))
+        server.bind(('127.0.0.1', 5000))
         server.listen(1)
         conn, addr = server.accept()
         print('Connected by' + str(addr))
         while True:
             msg = conn.recv(1024)
-            if (not msg || msg == 'sair'):
+            if (not msg or msg == 'sair'):
                 break
             print(addr, msg.decode('utf-8'), end='\n')
         msg = "Sucesso"
