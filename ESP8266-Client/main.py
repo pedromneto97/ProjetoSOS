@@ -1,4 +1,4 @@
-from machine
+import machine
 import client
 
 machine.freq(160000000)
