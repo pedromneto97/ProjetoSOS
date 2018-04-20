@@ -1,8 +1,8 @@
-from machine import freq
+from machine
 import client
 
-freq(160000000)
+machine.freq(160000000)
 
 while True:
-    c = client.Client()
-    c.client()
+    c = client.Client() #Cria o cliente
+    c.client() #Chama a função para se conectar com o servidor
