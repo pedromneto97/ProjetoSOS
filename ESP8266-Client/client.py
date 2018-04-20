@@ -26,8 +26,8 @@ class Client:
     def client(self):
         while self.station.status() != 5:
             pass
-        HOST = '0.0.0.0'  # Endereco IP do Servidor
-        PORT = 8266  # Porta que o Servidor esta
+        HOST = '192.168.1.25'  # Endereco IP do Servidor
+        PORT = 5000  # Porta que o Servidor esta
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         dest = (HOST, PORT)
         tcp.connect(dest)
