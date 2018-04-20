@@ -31,7 +31,7 @@ class Server:
         print('Connected by' + str(addr))
         while True:
             msg = conn.recv(1024)
-            if not msg or (msg is 'sair'):
+            if not msg or (msg.decode('utf-8') is 'sair'):
                 break
             print(addr, msg.decode('utf-8'), end='\n')
         msg = "Sucesso"
