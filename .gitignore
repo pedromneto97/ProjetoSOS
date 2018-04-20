@@ -1,2 +1,5 @@
 .idea
 venv
+ESP8266-Server/__pycache__
+ESP8266-Client/__pycache__
+

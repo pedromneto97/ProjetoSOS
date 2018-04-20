@@ -1,8 +1,8 @@
-#from machine import freq
+from machine import freq
 from time import sleep
 import server
 
-#freq(160000000)
+freq(160000000)
 # led = machine.Pin(15, machine.Pin.OUT)
 #  Porta 13 = D7
 #  Porta 15 = D8

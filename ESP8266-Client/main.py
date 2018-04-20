@@ -1,7 +1,7 @@
-#from machine import freq
+from machine import freq
 import client
 
-#freq(160000000)
+freq(160000000)
 
 while True:
     c = client.Client()
