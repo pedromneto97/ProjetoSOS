@@ -9,6 +9,7 @@ freq(160000000)
 # but = machine.Pin(13, machine.Pin.IN)
 
 while True:
+    #Cria o server
     serv = server.Server()
-    sleep(3)
+    #Chama o server
     s = serv.servidor()
