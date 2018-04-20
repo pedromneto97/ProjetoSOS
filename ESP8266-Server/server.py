@@ -24,7 +24,14 @@ class Server:
 
     def servidor(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind(('127.0.0.1', 5000))
+        confs = self.station.ifconfig()
+        aux = confs[0].split('.')
+        ip = str(aux[0]) + '.'+ str(aux[1]) +'.'+str(aux[2])+'.'+str(25)
+        self.station.ifconfig((ip, confs[1], confs[2], confs[3]))
+        confs = None
+        aux = None
+        ip = None
+        server.bind(('192.168.1.25', 5000))
         server.listen(1)
         print("Esperando:\n")
         conn, addr = server.accept()
