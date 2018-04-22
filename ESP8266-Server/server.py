@@ -1,7 +1,7 @@
 import network
 from time import sleep
 import socket
-
+import os
 
 # Classe do server
 class Server:
@@ -12,6 +12,7 @@ class Server:
 
     # Construtor
     def __init__(self):
+        #f = open('wifi.txt','r')
         self.conectar()
 
     # Função para se conectar na rede

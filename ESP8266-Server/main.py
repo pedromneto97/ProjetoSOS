@@ -1,15 +1,13 @@
 from machine import freq
-from time import sleep
-import server
+# from time import sleep
+# import server
+from AP import AccessPoint
 
 freq(160000000)
-# led = machine.Pin(15, machine.Pin.OUT)
-#  Porta 13 = D7
-#  Porta 15 = D8
-# but = machine.Pin(13, machine.Pin.IN)
-
-while True:
-    #Cria o server
-    serv = server.Server()
-    #Chama o server
-    s = serv.servidor()
+ap = AccessPoint()
+ap.web_server()
+# while True:
+# Cria o server
+# serv = server.Server()
+# Chama o server
+# s = serv.servidor()
