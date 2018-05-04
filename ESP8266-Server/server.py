@@ -1,35 +1,14 @@
 import network
 from time import sleep
 import socket
-
+import os
 
 # Classe do server
 class Server:
-    # Classe para utilizar a wireless
-    station = network.WLAN(network.STA_IF)
-    ssid = "Pedro e Roberto"  # SSID da rede
-    password = "P3dr03r0b3rt0"  # Senha da rede
 
     # Construtor
-    def __init__(self):
-        self.conectar()
-
-    # Função para se conectar na rede
-    def conectar(self):
-        # Verifica se já está conectado
-        if (self.station.isconnected()):
-            print("Conectado")
-            return
-        # Ativa o Wifi
-        self.station.active(True)
-        # Conecta na rede
-        self.station.connect(self.ssid, self.password)
-        # Mantém no laço enquanto não estiver conectado
-        while self.station.isconnected() == False:
-            # machine.idle()
-            print("Não conectado")
-            sleep(2)
-            pass
+    def __init__(self, sta):
+        self.station = sta
 
     # Servidor
     def servidor(self):
