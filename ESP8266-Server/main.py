@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #Contribuição: Ariangelo Hauer Dias
 
 import ntptime
@@ -10,6 +9,7 @@ gc.collect()
 
 from connect import Connect
 from machine import Pin, ADC, RTC, unique_id, I2C, reset
+from server import Server
 
 class Device:
     def __init__(self):
@@ -46,6 +46,8 @@ def main():
                 
                 boot = False 
                 device.rtc = RTC()
+            s = Server(device.connection)
+            s.servidor()
 
 
 if __name__== '__main__':

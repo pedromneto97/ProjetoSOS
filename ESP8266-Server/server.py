@@ -1,20 +1,16 @@
 import network
-from time import sleep
 import socket
-import os
-
+from gc import collect
 # Classe do server
 class Server:
 
     # Construtor
     def __init__(self, sta):
         self.station = sta
+        collect()
 
     # Servidor
     def servidor(self):
-        # Enquanto não receber um endereço IP
-        while self.station.status() != 5:
-            pass
         # Cria o socket
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         confs = self.station.ifconfig()  # Recebe as configurações de endereço
@@ -41,4 +37,4 @@ class Server:
         msg = "Sucesso"
         conn.send(msg.encode('utf-8'))  # Retorna a mensagem para o cliente
         print("Finalizando")
-        conn.close() #Fecha a conecção
+        conn.close()  # Fecha a conexão
