@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #Contribuição: Ariangelo Hauer Dias
 
 import ntptime
