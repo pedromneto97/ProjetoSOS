@@ -1,35 +1,11 @@
-import network
-import machine
-from time import sleep
 import socket
-
 
 # Classe client para ser utilizado na pulseira
 class Client:
-    # station é a variável para utilizar a wireless network
-    station = network.WLAN(network.STA_IF)
-    ssid = "Pedro e Roberto"  # ssid do WiFi
-    password = "P3dr03r0b3rt0"  # Senha do ssid
 
     # Construtor que chama o conectar
-    def __init__(self):
-        self.conectar()
-
-    def conectar(self):
-        # Primeira condição é verificar se já está conectado
-        if (self.station.isconnected()):
-            print("Conectado")
-            return
-        self.station.active(True)  # Ativa o WiFi
-        self.station.connect(self.ssid, self.password)  # Conecta na rede
-        # Enquanto não estiver conectado, se mantém no loop
-        while self.station.isconnected() == False:
-            # Implementar para manter a máquina desligada enquanto espera se conectar
-            # machine.idle()
-            print("Não conectado")
-            sleep(2)
-            pass
-        print("Conectado")
+    def __init__(self, sta):
+        self.sta = sta
 
     def client(self):
         try:
@@ -49,4 +25,5 @@ class Client:
             msg = tcp.recv(1024)  # Recebe a resposta do servidor
             print(msg.decode('utf-8'))  # Escreve a mensagem do servidor
             tcp.close()  # Fecha a conexão
-        except ConnectionError:
+        except :
+            print("Não foi possível se conectar")
