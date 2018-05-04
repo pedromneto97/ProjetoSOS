@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#Autor: Ariangelo Hauer Dias
 
 import network
 import dnsquery
