@@ -10,6 +10,7 @@ collect()
 from connect import Connect
 from machine import Pin, ADC, RTC, unique_id, I2C, reset
 from client import Client
+from pulseira import Pulseira
 
 class Device:
     def __init__(self):
@@ -24,6 +25,7 @@ class Device:
 
 def main():
     device = Device()
+    client = Client()
     connected = device.connection.isconnected()
     boot = True
 
@@ -46,9 +48,8 @@ def main():
                 
                 boot = False 
                 device.rtc = RTC()
-            c = Client(device.connection)
-            c.client()
-
+            pulseira = Pulseira()
+            client.client(pulseira.config)
 
 if __name__== '__main__':
     main()
