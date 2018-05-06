@@ -16,7 +16,7 @@ class Server:
         confs = self.station.ifconfig()  # Recebe as configurações de endereço
         aux = confs[0].split('.')  # Sepera o endereço IP por ponto
         # Monta o 192.168.1.25
-        ip = str(aux[0]) + '.' + str(aux[1]) + '.' + str(aux[2]) + '.' + str(25)
+        ip = str(aux[0]) + '.' + str(aux[1]) + '.' + str(aux[2]) + '.' + str(100)
         # Define as configurações de IP, só alterando o IP do server
         self.station.ifconfig((ip, confs[1], confs[2], confs[3]))
         # Seta as variáveis como nada
