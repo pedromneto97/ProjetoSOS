@@ -20,7 +20,7 @@ Para a parte de programação do projeto está sendo utilizado as seguintes ferr
 - Python3.5 - Linguagem de programação compatível com o MicroPython
 - PIP - Sistema gerenciador de pacotes do Python
 - [Micropython](http://micropython.org/) - Versão compacta do Python e otimizada para microcontroladores
-- [Esptool]((https://github.com/espressif/esptool) - Ferramenta para instalação do firmware em ESPs
+- [Esptool](https://github.com/espressif/esptool) - Ferramenta para instalação do firmware em ESPs
 - [Ampy](https://github.com/adafruit/ampy) - Adafruit MicroPython Tool, ferramenta para comunicação serial com o ESP, utilizada para manipular os arquivos dentro do ESP
 
 
@@ -29,7 +29,14 @@ Para a parte de programação do projeto está sendo utilizado as seguintes ferr
 Primeiramente é necessário instalar o Python3.5 e para isso utiliza-se
 `sudo apt-get install python3.5`
 
-Após instalar o Python3.5 deve-se instalar o pip. Para isso deve-se seguir os seguintes passos:
+Após instalar o Python3.5 deve-se instalar o pip para a versão 3.5 do Python. Para isso deve-se seguir os seguintes passos:
 `cd [seu_diretorio]`
 `curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py`
-`python3.5 get-pip.py`
+`python3.5 get-pip.py`  
+É possível ver a versão atual do pip e o Python utilizando o `pip -V`  
+  
+Instalado o pip é possível instalar o esptool utilizando:  
+`pip install esptool`  
+E para instalar o ampy:
+`pip install adafruit-ampy`  
+Pode haver alguns problemas com o esptool e o ampy devido a necessidade de permissão ao utilizar a porta usb pelo `/dev/ttyUSB0`, caso isso ocorra, é necessário instalar os dois utilizando o `sudo`.  
