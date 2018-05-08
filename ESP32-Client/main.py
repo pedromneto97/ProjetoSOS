@@ -9,6 +9,7 @@ collect()
 
 from connect import Connect
 from machine import Pin, ADC, RTC, unique_id, I2C, reset
+from time import sleep()
 from client import Client
 from pulseira import Pulseira
 
@@ -16,16 +17,27 @@ class Device:
     def __init__(self):
         self.c = Connect()
         self.connection = self.c.start()
+        self.client = Client(self.connection)
+        self.pulseira = Pulseira()
+        self.botao = Pin(15,Pin.IN,Pin.PULL_DOWN)
+        self.botao.irq(trigger= Pin.IRQ_RISING, handler=pressionado)
+        self.saida = Pin(14,Pin.OUT)
+        self.botao.irq(trigger= Pin.IRQ_FALLING, handler=liberado)
         id = unique_id() 
         self.rtc = ()
         self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
         listHexId = [];
         listHexId.append(self.hex_id)
-
-
+    
+    def pressionado(self, p):
+        self.saida.On()
+        self.client.client(self.pulseira.config)
+    def liberado(self,p):
+        self.saida.Off()
+        
+    
 def main():
     device = Device()
-    client = Client()
     connected = device.connection.isconnected()
     boot = True
 
@@ -48,8 +60,6 @@ def main():
                 
                 boot = False 
                 device.rtc = RTC()
-            pulseira = Pulseira()
-            client.client(pulseira.config)
 
 if __name__== '__main__':
     main()
