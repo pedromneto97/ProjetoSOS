@@ -9,7 +9,7 @@ collect()
 
 from connect import Connect
 from machine import Pin, ADC, RTC, unique_id, I2C, reset
-from time import sleep()
+from time import sleep
 from client import Client
 from pulseira import Pulseira
 
@@ -30,10 +30,10 @@ class Device:
         listHexId.append(self.hex_id)
     
     def pressionado(self, p):
-        self.saida.On()
+        self.saida.value(1)
         self.client.client(self.pulseira.config)
     def liberado(self,p):
-        self.saida.Off()
+        self.saida.value(0)
         
     
 def main():
@@ -60,6 +60,7 @@ def main():
                 
                 boot = False 
                 device.rtc = RTC()
+                break
+    device.client.client(device.pulseira.config, 'Ajuda')
 
-if __name__== '__main__':
-    main()
+main()
