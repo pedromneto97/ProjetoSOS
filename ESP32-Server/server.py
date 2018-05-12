@@ -10,7 +10,7 @@ class Server:
         collect()
 
     # Servidor
-    def servidor(self):
+    def servidor(self, lista):
         # Cria o socket
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         confs = self.station.ifconfig()  # Recebe as configurações de endereço
@@ -23,18 +23,25 @@ class Server:
         confs = None
         aux = None
         server.bind((ip, 5000))  # Da bind no endereço
-        ip = None  # Esvazia
-        server.listen(1)  # Começa a ouvir
+        server.listen(28)  # Começa a ouvir
+        print("Endereço: "+ ip)
         print("Esperando:\n")
         conn, addr = server.accept()  # Recebe a conecção e o endereço
         print('Connected by' + str(addr))
         # Laço das mensagens do cliente
-        while True:
-            msg = conn.recv(1024)  # Recebe a mensagen
-            if not msg or (msg.decode('utf-8') is 'sair'):  # Compara e ver se é para sair
-                break
-            print(addr, msg.decode('utf-8'), end='\n')
-        msg = "Sucesso"
-        conn.send(msg.encode('utf-8'))  # Retorna a mensagem para o cliente
+        msg = conn.recv(1024)  # Recebe a mensagen
+        print(addr, msg.decode('utf-8'), end='\n')
+        tipo = msg.decode('utf-8')
+        msg = conn.recv(1024)  # Recebe a mensagen
+        print(addr, msg.decode('utf-8'), end='\n')
+        pessoa = msg.decode('utf-8')
+        msg = conn.recv(1024)  # Recebe a mensagen
+        print(addr, msg.decode('utf-8'), end='\n')
+        quarto = msg.decode('utf-8')
+        lista = {
+            'tipo': tipo,
+            'nome': pessoa,
+            'quarto': quarto
+        }
         print("Finalizando")
         conn.close()  # Fecha a conexão

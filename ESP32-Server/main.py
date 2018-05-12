@@ -13,6 +13,7 @@ from server import Server
 
 class Device:
     def __init__(self):
+        self.lista = []
         self.c = Connect()
         self.connection = self.c.start()
         id = unique_id() 
@@ -47,7 +48,7 @@ def main():
                 boot = False 
                 device.rtc = RTC()
             s = Server(device.connection)
-            s.servidor()
+            s.servidor(device.lista)
 
 
 if __name__== '__main__':
