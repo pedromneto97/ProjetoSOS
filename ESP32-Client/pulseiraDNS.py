@@ -37,8 +37,7 @@ HTTP/1.0 200 OK
                 <br/>
                 <button type="submit">save</button>
             </form>
-            <div>Credentials Saved<br />Trying to connect ESP to network.<br />If it fails reconnect to AP to try again</div>
-        </div>
+           </div>
     </body>
 </html>
 """
@@ -120,9 +119,10 @@ def start():
                 if h == b"" or h == b"\r\n" or h == None:
                     break
 
-            request_url = req[5:13]
+            request_url = req[5:17]
+            print(req + "\n" + request_url)
             if request_url == b'pulseirasave':
-                params = req[14:-11]
+                params = req[18:-11]
                 try:
                     d = {key: value for (key, value) in [x.split(b'=') for x in params.split(b'&')]}
                     configured = True
