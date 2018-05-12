@@ -3,6 +3,7 @@
 import machine
 import network
 import socket
+from os import remove
 
 CONTENT = """\
 HTTP/1.0 200 OK
@@ -30,17 +31,8 @@ HTTP/1.0 200 OK
     </head>
     <body>
         <div style="text-align:left;display:inline-block;min-width:260px;">
-            <form action="/wifi" method="get">
-                <button>Configure WiFi</button>
-            </form><br/>
-            <form action="/0wifi" method="get">
-                <button>Configure WiFi (No Scan)</button>
-            </form><br/>
-            <form action="/i" method="get">
-                <button>Info</button>
-            </form><br/>
-            <form action="/r" method="post">
-                <button>Reset</button>
+            <form action="/r" method="get">
+                <button>Limpar dados da pulseira</button>
             </form>
             <br/>
             ---lines---
@@ -52,7 +44,6 @@ HTTP/1.0 200 OK
                 <button type="submit">save</button>
             </form>
             <br/><div class="c"><a href="/wifi">Scan</a></div>
-            <div>Credentials Saved<br />Trying to connect ESP to network.<br />If it fails reconnect to AP to try again</div>
         </div>
     </body>
 </html>
@@ -156,7 +147,12 @@ def start():
                     configured = True
                 except:
                     d = {}
-
+            res = req[5:7]
+            if request_url == b'/r':
+                try:
+                    remove('pulseira.json')
+                except:
+                    machine.reset()
             client_stream.write(CONTENT.replace('---lines---', p.find_ssid()))
             client_stream.close()
         except:
