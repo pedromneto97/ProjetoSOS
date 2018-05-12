@@ -53,6 +53,7 @@ class Connect:
                 f = open('config.json', 'w')  
                 f.write(ujson.dumps(self.config))
                 f.close()
+                machine.reset()
             else:  
                 time.sleep(1)
                 machine.reset()
