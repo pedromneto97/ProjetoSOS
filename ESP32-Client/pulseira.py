@@ -20,7 +20,7 @@ class Pulseira:
                 'nome':d[b'nome'],
                 'quarto':d[b'quarto']
             }
-            f = open('config.json', 'w')
+            f = open('pulseira.json', 'w')
             f.write(ujson.dumps(self.config))
             f.close()
             machine.reset()
