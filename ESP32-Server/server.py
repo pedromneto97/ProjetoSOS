@@ -26,22 +26,23 @@ class Server:
         server.listen(28)  # Começa a ouvir
         print("Endereço: "+ ip)
         print("Esperando:\n")
-        conn, addr = server.accept()  # Recebe a conecção e o endereço
-        print('Connected by' + str(addr))
-        # Laço das mensagens do cliente
-        msg = conn.recv(1024)  # Recebe a mensagen
-        print(addr, msg.decode('utf-8'), end='\n')
-        tipo = msg.decode('utf-8')
-        msg = conn.recv(1024)  # Recebe a mensagen
-        print(addr, msg.decode('utf-8'), end='\n')
-        pessoa = msg.decode('utf-8')
-        msg = conn.recv(1024)  # Recebe a mensagen
-        print(addr, msg.decode('utf-8'), end='\n')
-        quarto = msg.decode('utf-8')
-        lista = {
-            'tipo': tipo,
-            'nome': pessoa,
-            'quarto': quarto
-        }
-        print("Finalizando")
-        conn.close()  # Fecha a conexão
+        while True:
+            conn, addr = server.accept()  # Recebe a conecção e o endereço
+            print('Connected by' + str(addr))
+            # Laço das mensagens do cliente
+            msg = conn.recv(1024)  # Recebe a mensagen
+            print(addr, msg.decode('utf-8'), end='\n')
+            tipo = msg.decode('utf-8')
+            msg = conn.recv(1024)  # Recebe a mensagen
+            print(addr, msg.decode('utf-8'), end='\n')
+            pessoa = msg.decode('utf-8')
+            msg = conn.recv(1024)  # Recebe a mensagen
+            print(addr, msg.decode('utf-8'), end='\n')
+            quarto = msg.decode('utf-8')
+            lista = {
+                'tipo': tipo,
+                'nome': pessoa,
+                'quarto': quarto
+            }
+            print("Finalizando")
+            conn.close()  # Fecha a conexão
