@@ -72,17 +72,34 @@ Também é possível listar os arquivos e pegar o conteúdo deles:
   
 ## **Em andamento**  
   
+### Receptor  
+  
 - Nível de bateria
-- Cadastro da pulseira
-- Comunicação dos dados
-- Atuação do acelerômetro
-- Atuação do botão de solicitação de ajuda
 - Display das informações no LCD
 - Botões do LCD
 
+### Pulseira  
+  
+- Nível de bateria
+- Duração do beep extendida para caso não consiga se conectar com o servidor
+- Deixar em _stand-by_ enquanto o botão não for pressionado.
+- Atuação do acelerômetro.
+
 ## **Documentação**
   
+### **Pinos do ESP32 - Pulseira**
+  
+O circuito do ESP32 está feito de maneira que o GPIO15 atua como a entrada, detectando a borda de subida e chamando uma função quando detecta. O GPIO2 atua como pino de saída para acionar o _LED_ e o _buzzer_. Já o GPIO4 atua como pino de saída para alimentar o botão, assim é possível fazer um _debounce_ para o botão.  
+  
+### **MODO DE OPERAÇÃO**
 O projeto está separado pela atuação do ESP32, aonde um irá atuar como servidor e outros ESPs irão atuar como clientes.  
-Pela necessidade de utilizar uma comunicação WiFi, caso não encontre um ponto de acesso, o ESP irá se tornar um ponto de acesso aonde poderá ser cadastrado o SSID e senha.  
+Pela necessidade de utilizar uma comunicação WiFi, caso não encontre um ponto de acesso previamente cadastrado, o ESP irá se tornar um ponto de acesso aonde poderá ser cadastrado o SSID e senha.  
+**_APENAS PARA A PULSEIRA_**  
+Durante o cadastro do Wifi poderá ser possível limpar o cadastro da pulseira.  
+Após o cadastro do Wifi, se conectado, poderá ser cadastrado a pulseira, com a informação do **nome** e do **quarto**.  
+Após todos os cadastros, a pulseira ficará esperando o botão ser pressionado. Ao pressionar o botão, irá emitir um beep e conectar ao servidor.  
+A pulseira só irá requisitar ajuda uma vez a cada 15 segundos!  
+**_APENAS PARA O RECEPTOR_**  
+Após o cadastro do Wifi, o receptor irá se tornar um servidor e esperar a conexão da pulseira.  
   
   **_EM ANDAMENTO_**
