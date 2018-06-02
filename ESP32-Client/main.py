@@ -34,8 +34,11 @@ class Device:
         listHexId.append(self.hex_id)
 
     def ativa(self, p):
-        self.p4.value(1)
-        p.deinit()
+        try:
+            self.p4.value(1)
+            p.deinit()
+        except:
+            reset()
 
     def button(self,p):
         try:
