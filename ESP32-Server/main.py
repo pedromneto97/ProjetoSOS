@@ -1,22 +1,27 @@
-#Contribuição: Ariangelo Hauer Dias
+# Contribuição: Ariangelo Hauer Dias
+
+import gc
 
 import ntptime
 import utime
-import sys
-import gc
 
 gc.collect()
 
 from connect import Connect
-from machine import Pin, ADC, RTC, unique_id, I2C, reset
+from machine import Pin, RTC, unique_id, I2C
 from server import Server
+from ssd1306 import SSD1306_I2C
 
 class Device:
     def __init__(self):
         self.lista = []
+        self.oled = SSD1306_I2C(128, 64, I2C(sda=Pin(21), scl=Pin(22)))
+        self.oled.fill(0)
+        self.oled.text("Iniciando", 0, 32)
+        self.oled.show()
         self.c = Connect()
         self.connection = self.c.start()
-        id = unique_id() 
+        id = unique_id()
         self.rtc = ()
         self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
         listHexId = [];
@@ -33,8 +38,9 @@ def main():
             connected = device.connection.isconnected()
         else:
             if boot:
-                print('Connected as : {} - Device id : {}'.format(device.connection.ifconfig()[0], device.hex_id))
-                print('')
+                device.oled.fill(0)
+                device.oled.text("Conectado ao WiFi", 0, 32)
+                device.oled.show()
                 timeout = 5
                 setTime = False
                 while not setTime and timeout > 0:
@@ -43,13 +49,16 @@ def main():
                         setTime = True
                     except:
                         utime.sleep(1)
-                        timeout -= 1 
-                
-                boot = False 
+                        timeout -= 1
+
+                boot = False
                 device.rtc = RTC()
             s = Server(device.connection)
-            s.servidor(device.lista)
+            device.oled.fill(0)
+            device.oled.text("Nenhum pedido", 0, 32)
+            device.oled.show()
+            s.servidor(device)
 
 
-if __name__== '__main__':
+if __name__ == '__main__':
     main()
