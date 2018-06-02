@@ -8,7 +8,7 @@ from gc import collect
 collect()
 
 from connect import Connect
-from machine import Pin, ADC, RTC, unique_id, I2C, reset, Timer
+from machine import Pin, ADC, RTC, unique_id, reset, Timer
 from time import sleep
 from client import Client
 from pulseira import Pulseira
@@ -42,12 +42,19 @@ class Device:
         self.p2.value(1)
         sleep(2)
         self.p2.value(0)
-        self.client.client(self.pulseira.config, "Ajuda")
+        resp = self.client.client(self.pulseira.config, "Ajuda")
+        if resp == False:
+            self.p2.value(1)
+            sleep(7)
+            self.p2.value(0)
 
     def desativa_botao(self):
         self.p4.value(0)
-        t = Timer(-1)
-        t.init(period=15000, mode=Timer.ONE_SHOT, callback= self.ativa)
+        try:
+            t = Timer(-1)
+            t.init(period=15000, mode=Timer.ONE_SHOT, callback= self.ativa)
+        except:
+            reset()
         
     
 def main():

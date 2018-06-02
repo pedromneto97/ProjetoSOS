@@ -2,7 +2,6 @@ import socket
 from gc import collect
 from time import sleep_ms
 
-
 # Classe client para ser utilizado na pulseira
 class Client:
 
@@ -29,5 +28,7 @@ class Client:
             sleep_ms(500)
             tcp.send(dados['quarto'].encode('utf-8'))  # Envia para o servidor a mensagem em utf-8
             tcp.close()  # Fecha a conexão
+            return True
         except:
             print("Não foi possível se conectar com o servidor")
+            return False
