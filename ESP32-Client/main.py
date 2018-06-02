@@ -8,7 +8,7 @@ from gc import collect
 collect()
 
 from connect import Connect
-from machine import Pin, ADC, RTC, unique_id, reset, Timer
+from machine import Pin, ADC, RTC, unique_id, reset, Timer, disable_irq, enable_irq
 from time import sleep
 from client import Client
 from pulseira import Pulseira
@@ -38,24 +38,22 @@ class Device:
         p.deinit()
 
     def button(self,p):
-        self.desativa_botao()
-        self.p2.value(1)
-        sleep(2)
-        self.p2.value(0)
-        resp = self.client.client(self.pulseira.config, "Ajuda")
-        if resp == False:
-            self.p2.value(1)
-            sleep(7)
-            self.p2.value(0)
-
-    def desativa_botao(self):
-        self.p4.value(0)
         try:
+            irq = disable_irq()
+            self.p4.value(0)
+            enable_irq(irq)
+            self.p2.value(1)
+            sleep(2)
+            self.p2.value(0)
+            resp = self.client.client(self.pulseira.config, "Ajuda")
+            if resp == False:
+                self.p2.value(1)
+                sleep(7)
+                self.p2.value(0)
             t = Timer(-1)
             t.init(period=15000, mode=Timer.ONE_SHOT, callback= self.ativa)
         except:
             reset()
-        
     
 def main():
     device = Device()
