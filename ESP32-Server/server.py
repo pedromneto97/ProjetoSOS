@@ -13,9 +13,9 @@ class Server:
         collect()
 
     # Servidor
-    def servidor(self, lista):
-        # Cria o socket
+    def servidor(self, device):
         try:
+            # Cria o socket
             server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             confs = self.station.ifconfig()  # Recebe as configurações de endereço
             aux = confs[0].split('.')  # Sepera o endereço IP por ponto
@@ -28,12 +28,12 @@ class Server:
             aux = None
             server.bind((ip, 5000))  # Da bind no endereço
             server.listen(28)  # Começa a ouvir
-            print("Endereço: " + ip)
-            print("Esperando:\n")
+            # Laço das mensagens do cliente
+            print("Esperando: ", endl="\n")
             while True:
                 conn, addr = server.accept()  # Recebe a conecção e o endereço
                 print('Connected by' + str(addr))
-                # Laço das mensagens do cliente
+                device.p5.value(1)
                 msg = conn.recv(1024)  # Recebe a mensagen
                 print(addr, msg.decode('utf-8'), end='\n')
                 tipo = msg.decode('utf-8')
@@ -43,12 +43,22 @@ class Server:
                 msg = conn.recv(1024)  # Recebe a mensagen
                 print(addr, msg.decode('utf-8'), end='\n')
                 quarto = msg.decode('utf-8')
-                lista = {
+                list = ({
                     'tipo': tipo,
                     'nome': pessoa,
                     'quarto': quarto
-                }
-                print("Finalizando")
+                })
+                device.lista.append(list)
+                if len(device.lista) == 1:
+                    device.oled.fill(0)
+                    device.oled.text(device.lista[0]['tipo'], 0, 0)
+                    device.oled.text("Nome: " + device.lista[0]['nome'], 0, 20)
+                    device.oled.text("Quarto: " + device.lista[0]['quarto'], 0, 40)
+                    device.oled.show()
+                else:
+                    device.oled.text("+", 110, 0)
+                    device.oled.show()
+                device.p5.value(0)
                 conn.close()  # Fecha a conexão
         except:
             reset()
