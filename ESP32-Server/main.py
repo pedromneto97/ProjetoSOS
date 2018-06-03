@@ -3,10 +3,12 @@
 import gc
 
 import ntptime
+import ujson
 import utime
 
 gc.collect()
 
+from os import remove
 from connect import Connect
 from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset
 from server import Server
@@ -42,8 +44,8 @@ class Device:
         self.p4.irq(trigger=Pin.IRQ_RISING, handler=self.remove)
 
         # Buzzer
-        self.p5 = Pin(5, Pin.OUT)
-        self.p5.value(0)
+        self.p19 = Pin(19, Pin.OUT)
+        self.p19.value(0)
 
         self.c = Connect()
         self.connection = self.c.start()
@@ -80,6 +82,13 @@ class Device:
                 self.oled.show()
             enable_irq(irq)
         except:
+            if len(self.lista) > 0:
+                try:
+                    f = open('estado.json', 'w')
+                    f.write(ujson.dumps(self.lista))
+                    f.close()
+                except:
+                    print("Erro ao salvar estado")
             reset()
 
     def remove(self, p):
@@ -90,7 +99,7 @@ class Device:
             else:
                 enable_irq(irq)
                 return
-            print("Removendo")
+            # print("Removendo")
             if len(self.lista) == 0:
                 self.oled.fill(0)
                 self.oled.text("Nenhum pedido", 0, 32)
@@ -112,6 +121,13 @@ class Device:
                 self.oled.show()
             enable_irq(irq)
         except:
+            if len(self.lista) > 0:
+                try:
+                    f = open('estado.json', 'w')
+                    f.write(ujson.dumps(self.lista))
+                    f.close()
+                except:
+                    print("Erro ao salvar estado")
             reset()
 
     def ativa(self, p):
@@ -145,11 +161,24 @@ def main():
                 boot = False
                 device.rtc = RTC()
             s = Server(device.connection)
-            device.oled.fill(0)
-            device.oled.text("Nenhum pedido", 0, 32)
-            device.oled.show()
+            # Try para verificar se existe um arquivo com o estado da última vez
+            try:
+                f = open('estado.json', 'r')
+                device.lista = ujson.loads(f.read())
+                f.close()
+                device.oled.fill(0)
+                device.oled.text(device.lista[device.iterador]['tipo'], 0, 0)
+                device.oled.text("Nome: " + device.lista[device.iterador]['nome'], 0, 20)
+                device.oled.text("Quarto: " + device.lista[device.iterador]['quarto'], 0, 40)
+                if len(device.lista) > 1:
+                    device.oled.text("+", 110, 0)
+                device.oled.show()
+                remove("estado.json")
+            except:
+                device.oled.fill(0)
+                device.oled.text("Nenhum pedido", 0, 32)
+                device.oled.show()
             s.servidor(device)
-
 
 if __name__ == '__main__':
     main()

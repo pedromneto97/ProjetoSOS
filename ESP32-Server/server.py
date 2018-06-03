@@ -1,6 +1,7 @@
 import socket
 from gc import collect
 
+import ujson
 from machine import reset
 
 
@@ -28,12 +29,13 @@ class Server:
             aux = None
             server.bind((ip, 5000))  # Da bind no endereço
             server.listen(28)  # Começa a ouvir
+            print("Endereço: " + ip)
+            print("Esperando:\n")
             # Laço das mensagens do cliente
-            print("Esperando: ", endl="\n")
             while True:
                 conn, addr = server.accept()  # Recebe a conecção e o endereço
                 print('Connected by' + str(addr))
-                device.p5.value(1)
+                device.p19.value(1)
                 msg = conn.recv(1024)  # Recebe a mensagen
                 print(addr, msg.decode('utf-8'), end='\n')
                 tipo = msg.decode('utf-8')
@@ -48,7 +50,9 @@ class Server:
                     'nome': pessoa,
                     'quarto': quarto
                 })
+                print(list)
                 device.lista.append(list)
+                print(device.lista)
                 if len(device.lista) == 1:
                     device.oled.fill(0)
                     device.oled.text(device.lista[0]['tipo'], 0, 0)
@@ -58,7 +62,15 @@ class Server:
                 else:
                     device.oled.text("+", 110, 0)
                     device.oled.show()
-                device.p5.value(0)
+                print("Finalizando")
+                device.p19.value(0)
                 conn.close()  # Fecha a conexão
         except:
+            if len(device.lista) > 0:
+                try:
+                    f = open('estado.json', 'w')
+                    f.write(ujson.dumps(device.lista))
+                    f.close()
+                except:
+                    print("Erro ao salvar estado")
             reset()
