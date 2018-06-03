@@ -81,13 +81,18 @@ Também é possível listar os arquivos e pegar o conteúdo deles:
 ### Pulseira  
   
 - Nível de bateria
-- Atuação do acelerômetro.
+- Limiar do acelerômetro  
+  
+  A partir que qual aceleração (em _g_) é uma queda.
 
 ## **Documentação**
   
 ### **Pinos do ESP32 - Pulseira**
   
-O circuito do ESP32 está feito de maneira que o GPIO15 atua como a entrada, detectando a borda de subida e chamando uma função quando detecta. O GPIO2 atua como pino de saída para acionar o _LED_ e o _buzzer_. Já o GPIO4 atua como pino de saída para alimentar o botão, assim é possível fazer um _debounce_ para o botão.  
+O circuito do ESP32 está feito de maneira que o GPIO15 atua como a entrada, detectando a borda de subida e chamando uma função quando detecta.  
+O GPIO2 atua como pino de saída para acionar o _LED_ e o _buzzer_.  
+Já o GPIO4 atua como pino de saída para alimentar o botão, assim é possível fazer um _debounce_ para o botão.  
+O acelerômetro está ligado no ESP32, sendo o eixo _X_ no GPIO32, o eixo _Y_ no GPIO35 e o eixo _Z_ no GPIO34.  
   
 ### **Pinos do ESP32 - Receptor**
   
