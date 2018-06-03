@@ -83,7 +83,7 @@ Também é possível listar os arquivos e pegar o conteúdo deles:
 - Nível de bateria
 - Limiar do acelerômetro  
   
-  A partir que qual aceleração (em _g_) é uma queda.
+  A partir de qual aceleração (em _g_) é uma queda.
 
 ## **Documentação**
   
