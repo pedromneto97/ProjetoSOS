@@ -91,7 +91,7 @@ O circuito do ESP32 está feito de maneira que o GPIO15 atua como a entrada, det
   
 ### **Pinos do ESP32 - Receptor**
   
-O circuito do ESP32 está feito de maneira que o GPIO15 atua como uma saída para alimentar os botões do receptor. O GPIO2 atua como entrada, chamando uma função em que passa a ser exibido o próximo item da lista. O GPIO4 atua como entrada, chamando a função que remove o item atual da lista.  
+O circuito do ESP32 está feito de maneira que o GPIO15 atua como uma saída para alimentar os botões do receptor. O GPIO2 atua como entrada, chamando uma função em que passa a ser exibido o próximo item da lista. O GPIO4 atua como entrada, chamando a função que remove o item atual da lista. O GPIO19 atua como uma saída para alimentar o buzzer.  
 Os pinos 21 e 22 são utilizados para comunicação I2C com o display de OLED, sendo o GPIO21 como `sda` e o GPIO22 como `scl`.  
   
 ### **MODO DE OPERAÇÃO**
@@ -103,7 +103,7 @@ Após o cadastro do Wifi, se conectado, poderá ser cadastrado a pulseira, com a
 Após todos os cadastros, a pulseira ficará esperando o botão ser pressionado. Ao pressionar o botão, irá emitir um beep e conectar ao servidor. Caso não seja possível se conectar ao servidor, a pulseira irá emitir um _beep_ extendido.   
 A pulseira só irá requisitar ajuda uma vez a cada 15 segundos!  
 **_APENAS PARA O RECEPTOR_**  
-Após o cadastro do Wifi, o receptor irá se tornar um servidor e esperar a conexão da pulseira.  
+Após o cadastro do Wifi, o receptor irá se tornar um servidor e esperar a conexão da pulseira. Caso haja alguma conexão, será emitido um _beep_.  
 Ao pressionar o botão de próximo, é exibido no display a próxima pessoa que requisitou ajuda e sempre que há mais de uma pessoa, um símbolo de + ficará visível no canto do display.  
 Ao pressionar o botão de remover, o nome atual exibido no display será removido, retornando ao começo da lista.  
 Foi implementado vários `try except` de maneira que tratem qualquer erro, salvem o estado atual e reiniciem o ESP32.
