@@ -10,8 +10,8 @@ O principal objetivo do projeto é facilitar a obtenção de ajuda em um lar de 
 Para o desenvolvimento do projeto está sendo utilizado os seguintes equipamentos:
 - ESP32 - Placa de desenvolvimento NodeMCU-32S
 - Acelerômetro - Módulo GY-61 com saídas analógicas em cada um dos seus três eixos
-- LCD - Display LCD 16x02
-
+- ~~LCD - Display LCD 16x02~~  
+- Display OLED 128x64
 
 ## **Ferramentas**
 
@@ -74,15 +74,13 @@ Também é possível listar os arquivos e pegar o conteúdo deles:
   
 ### Receptor  
   
-- Nível de bateria
-- Display das informações no LCD
-- Botões do LCD
+- Nível de bateria  
+  
+    A ideia é fazer um divisor de tensão do `VIN` com uma resistência equivalente do circuito de 10M. A primeira parte tem uma resistencia de 8M, após a resistência de 8M o circuito se divide indo para o ADC e para um resistor de 2M. Depois do resistor de 2M será ligado ao _ground_, assim a tensão no ADC será 1/5 da tensão de alimentação.
 
 ### Pulseira  
   
 - Nível de bateria
-- Duração do beep extendida para caso não consiga se conectar com o servidor
-- Deixar em _stand-by_ enquanto o botão não for pressionado.
 - Atuação do acelerômetro.
 
 ## **Documentação**
@@ -91,15 +89,23 @@ Também é possível listar os arquivos e pegar o conteúdo deles:
   
 O circuito do ESP32 está feito de maneira que o GPIO15 atua como a entrada, detectando a borda de subida e chamando uma função quando detecta. O GPIO2 atua como pino de saída para acionar o _LED_ e o _buzzer_. Já o GPIO4 atua como pino de saída para alimentar o botão, assim é possível fazer um _debounce_ para o botão.  
   
+### **Pinos do ESP32 - Receptor**
+  
+O circuito do ESP32 está feito de maneira que o GPIO15 atua como uma saída para alimentar os botões do receptor. O GPIO2 atua como entrada, chamando uma função em que passa a ser exibido o próximo item da lista. O GPIO4 atua como entrada, chamando a função que remove o item atual da lista. O GPIO19 atua como uma saída para alimentar o buzzer.  
+Os pinos 21 e 22 são utilizados para comunicação I2C com o display de OLED, sendo o GPIO21 como `sda` e o GPIO22 como `scl`.  
+  
 ### **MODO DE OPERAÇÃO**
 O projeto está separado pela atuação do ESP32, aonde um irá atuar como servidor e outros ESPs irão atuar como clientes.  
 Pela necessidade de utilizar uma comunicação WiFi, caso não encontre um ponto de acesso previamente cadastrado, o ESP irá se tornar um ponto de acesso aonde poderá ser cadastrado o SSID e senha.  
 **_APENAS PARA A PULSEIRA_**  
 Durante o cadastro do Wifi poderá ser possível limpar o cadastro da pulseira.  
 Após o cadastro do Wifi, se conectado, poderá ser cadastrado a pulseira, com a informação do **nome** e do **quarto**.  
-Após todos os cadastros, a pulseira ficará esperando o botão ser pressionado. Ao pressionar o botão, irá emitir um beep e conectar ao servidor.  
+Após todos os cadastros, a pulseira ficará esperando o botão ser pressionado. Ao pressionar o botão, irá emitir um beep e conectar ao servidor. Caso não seja possível se conectar ao servidor, a pulseira irá emitir um _beep_ extendido.   
 A pulseira só irá requisitar ajuda uma vez a cada 15 segundos!  
 **_APENAS PARA O RECEPTOR_**  
-Após o cadastro do Wifi, o receptor irá se tornar um servidor e esperar a conexão da pulseira.  
+Após o cadastro do Wifi, o receptor irá se tornar um servidor e esperar a conexão da pulseira. Caso haja alguma conexão, será emitido um _beep_.  
+Ao pressionar o botão de próximo, é exibido no display a próxima pessoa que requisitou ajuda e sempre que há mais de uma pessoa, um símbolo de + ficará visível no canto do display.  
+Ao pressionar o botão de remover, o nome atual exibido no display será removido, retornando ao começo da lista.  
+Foi implementado vários `try except` de maneira que tratem qualquer erro, salvem o estado atual e reiniciem o ESP32.
   
   **_EM ANDAMENTO_**
