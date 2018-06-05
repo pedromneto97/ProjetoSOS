@@ -20,8 +20,8 @@ class Connect:
             self.lconf = len(self.config)
             f.close()                
         except:      
-            print("Configuration not found. Using default...")
-            self.config = {0: ["5257526e5a513d3d", "534856695a6a46685255524852513d3d"]}
+            print("Configuration not found.")
+            self.config = {}
             self.lconf = 0
             
     def connection(self, s, p, timeout=10):

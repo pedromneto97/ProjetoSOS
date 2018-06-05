@@ -40,11 +40,11 @@ HTTP/1.0 200 OK
                 <button type="submit">save</button>
             </form>
             <br/><div class="c"><a href="/wifi">Scan</a></div>
-            <div>Credentials Saved<br />Trying to connect ESP to network.<br />If it fails reconnect to AP to try again</div>
         </div>
     </body>
 </html>
 """
+
 
 
 class DNSQuery:

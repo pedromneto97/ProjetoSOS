@@ -148,7 +148,7 @@ def start():
                 except:
                     d = {}
             res = req[5:7]
-            if request_url == b'/r':
+            if res == b'/r':
                 try:
                     remove('pulseira.json')
                 except:
