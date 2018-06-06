@@ -21,15 +21,19 @@ class Device:
         # Alimentação
         self.p4 = Pin(4, Pin.OUT)
         self.p4.value(1)
+
         # Buzzer e LED
-        self.p2 = Pin(2, Pin.OUT)
+        self.p2 = Pin(2, Pin.OUT) #LED
+        self.p5 = Pin(5, Pin.OUT) #BUZZER
+
         # Botão
         self.p15 = Pin(15, Pin.IN, Pin.PULL_DOWN)
         self.p15.irq(trigger=Pin.IRQ_RISING, handler=self.button)
+
         # Acelerômetro
-        self.z = ADC(Pin(34))
+        self.z = ADC(Pin(32))
         self.y = ADC(Pin(35))
-        self.x = ADC(Pin(32))
+        self.x = ADC(Pin(34))
         self.acelerometro()
 
         id = unique_id()
@@ -48,20 +52,28 @@ class Device:
         self.timer = Timer(0)
         self.timer.init(period=250, mode=Timer.PERIODIC, callback=self.verifica)
 
+    def avisa(self):
+        self.p2.value(1)
+        self.p5.value(1)
+
+    def desliga_aviso(self):
+        self.p2.value(0)
+        self.p5.value(0)
+
     # Função que verifica o acelerometro
     def verifica(self, p):
         xval = (self.x.read() - 462) / 105
         yval = (self.y.read() - 464) / 103
         zval = (self.z.read() - 474) / 102
         if abs(xval) > 2 or abs(yval) > 2 or abs(zval) > 2:
-            self.p2.value(1)
+            self.avisa()
             sleep(2)
-            self.p2.value(0)
+            self.desliga_aviso()
             resp = self.client.client(self.pulseira.config, "Emergência")
             if resp == False:
-                self.p2.value(1)
+                self.avisa()
                 sleep(7)
-                self.p2.value(0)
+                self.desliga_aviso()
 
     # Alimenta o botão novamente
     def ativa(self, p):
@@ -77,14 +89,14 @@ class Device:
             irq = disable_irq()
             self.p4.value(0)
             enable_irq(irq)
-            self.p2.value(1)
+            self.avisa()
             sleep(2)
-            self.p2.value(0)
+            self.desliga_aviso()
             resp = self.client.client(self.pulseira.config, "Ajuda")
             if resp == False:
-                self.p2.value(1)
+                self.avisa()
                 sleep(7)
-                self.p2.value(0)
+                self.desliga_aviso()
             t = Timer(-1)
             t.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
         except:
@@ -102,9 +114,9 @@ def main():
         else:
             if boot:
                 print('Connected as : {} - Device id : {}'.format(device.connection.ifconfig()[0], device.hex_id))
-                device.p2.value(1)
+                device.avisa()
                 sleep_ms(700)
-                device.p2.value(0)
+                device.desliga_aviso()
                 boot = False
                 break
     idle()
