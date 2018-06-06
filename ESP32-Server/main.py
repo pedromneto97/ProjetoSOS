@@ -21,6 +21,10 @@ class Device:
         self.lista = []
         self.iterador = 0
 
+        # Pino de alimentação
+        self.p15 = Pin(15, Pin.OUT)
+        self.p15.value(1)
+
         # Timer que ativa o botão depois de 400ms
         self.t = Timer(-1)
         self.t.init(period=400, mode=Timer.PERIODIC, callback=self.ativa)
@@ -30,10 +34,6 @@ class Device:
         self.oled.fill(0)
         self.oled.text("SOS", 50, 30)
         self.oled.show()
-
-        # Pino de alimentação
-        self.p15 = Pin(15, Pin.OUT)
-        self.p15.value(1)
 
         # Botão de próximo
         self.p2 = Pin(2, Pin.IN, Pin.PULL_DOWN)
