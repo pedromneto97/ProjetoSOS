@@ -28,7 +28,7 @@ class Device:
         # OLED
         self.oled = SSD1306_I2C(128, 64, I2C(sda=Pin(21), scl=Pin(22)))
         self.oled.fill(0)
-        self.oled.text("Iniciando", 0, 32)
+        self.oled.text("SOS", 50, 30)
         self.oled.show()
 
         # Pino de alimentação
@@ -146,7 +146,7 @@ def main():
         else:
             if boot:
                 device.oled.fill(0)
-                device.oled.text("Conectado ao WiFi", 0, 32)
+                device.oled.text("Conectado a rede", 0, 32)
                 device.oled.show()
                 timeout = 5
                 setTime = False
