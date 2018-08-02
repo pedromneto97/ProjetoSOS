@@ -1,14 +1,15 @@
 # Autor: Ariangelo Hauer Dias
 
+import socket
+
 import machine
 import network
-import socket
 
 CONTENT = """\
 HTTP/1.0 200 OK
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
         <title>{v}</title>
@@ -35,7 +36,7 @@ HTTP/1.0 200 OK
                 <input id="nome" name="nome" placeholder="Nome"><br/>
                 <input id="quarto" name="quarto" placeholder="Quarto"><br/>
                 <br/>
-                <button type="submit">save</button>
+                <button type="submit">Salvar</button>
             </form>
            </div>
     </body>

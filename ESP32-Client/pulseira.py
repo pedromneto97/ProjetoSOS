@@ -1,11 +1,12 @@
+import machine
 import pulseiraDNS
 import ujson
-import machine
+
 
 class Pulseira:
     def __init__(self):
         try:
-            print("Reading configuration...")
+            print("Lendo configuração...")
             f = open('pulseira.json', 'r')
             self.config = ujson.loads(f.read())
             f.close()

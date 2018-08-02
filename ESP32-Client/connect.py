@@ -1,11 +1,13 @@
 #Autor: Ariangelo Hauer Dias
 
-import network
+import time
+
 import dnsquery
+import machine
+import network
 import ubinascii
 import ujson
-import time
-import machine
+
 
 class Connect:
     def __init__(self):
@@ -14,13 +16,13 @@ class Connect:
             self.ap_if.active(False)
         self.sta_if = network.WLAN(network.STA_IF)    
         try:
-            print("Reading configuration...")
+            print("Lendo configuração...")
             f = open('config.json', 'r')
             self.config = ujson.loads(f.read())
             self.lconf = len(self.config)
-            f.close()                
-        except:      
-            print("Configuration not found.")
+            f.close()
+        except:
+            print("Configuração não encontrada.")
             self.config = {}
             self.lconf = 0
             
@@ -32,7 +34,7 @@ class Connect:
         
     def start(self):        
         if not self.sta_if.isconnected():
-            print('Trying to connect...', end="")
+            print('Tentando conectar...', end="")
             self.sta_if.active(True)
             i = 0
             while i < len(self.config) and not self.sta_if.isconnected():
@@ -44,7 +46,7 @@ class Connect:
 
         if not self.sta_if.isconnected():
             self.sta_if.active(False)
-            print('Network not connected')
+            print('Rede não conectada')
             d = dnsquery.start()
             self.connection(d[b's'], d[b'p'])
             if self.sta_if.isconnected():                

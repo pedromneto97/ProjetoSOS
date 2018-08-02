@@ -1,14 +1,15 @@
 # Autor: Ariangelo Hauer Dias
 
+import socket
+
 import machine
 import network
-import socket
 
 CONTENT = """\
 HTTP/1.0 200 OK
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
         <title>{v}</title>
@@ -35,9 +36,9 @@ HTTP/1.0 200 OK
             <form method="get" action="wifisave">
                 <br/>
                 <input id="s" name="s" length=32 placeholder="SSID"><br/>
-                <input id="p" name="p" length=64 type="password" placeholder="password"><br/>
+                <input id="p" name="p" length=64 type="password" placeholder="Senha"><br/>
                 <br/>
-                <button type="submit">save</button>
+                <button type="submit">Salvar</button>
             </form>
             <br/><div class="c"><a href="/wifi">Scan</a></div>
         </div>
