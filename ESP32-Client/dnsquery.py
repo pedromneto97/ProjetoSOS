@@ -1,4 +1,4 @@
-#Autor: Ariangelo Hauer Dias
+# Autor: Ariangelo Hauer Dias
 
 import socket
 from os import remove
@@ -50,32 +50,33 @@ HTTP/1.0 200 OK
 </html>
 """
 
+
 class DNSQuery:
     def __init__(self, data):
         self.data = data
         self.domain = ''
 
-        #print("Reading datagram data...")
-        m = data[2]             # ord(data[2])
-        type = (m >> 3) & 15    # Opcode bits
-        if type == 0:           # Standard query
+        # print("Reading datagram data...")
+        m = data[2]  # ord(data[2])
+        type = (m >> 3) & 15  # Opcode bits
+        if type == 0:  # Standard query
             ini = 12
-            lon = data[ini]     # ord(data[ini])
+            lon = data[ini]  # ord(data[ini])
             while lon != 0:
                 self.domain += data[ini + 1:ini + lon + 1].decode("utf-8") + '.'
                 ini += lon + 1
-                lon = data[ini] #ord(data[ini])
+                lon = data[ini]  # ord(data[ini])
 
     def request(self, ip):
         packet = b''
-        #print("Request {} == {}".format(self.domain, ip))
+        # print("Request {} == {}".format(self.domain, ip))
         if self.domain:
             packet += self.data[:2] + b"\x81\x80"
-            packet += self.data[4:6] + self.data[4:6] + b'\x00\x00\x00\x00' # Questions and Answers Counts
-            packet += self.data[12:]                                        # Original Domain Name Question
-            packet += b'\xc0\x0c'                                           # Pointer to domain name
-            packet += b'\x00\x01\x00\x01\x00\x00\x00\x3c\x00\x04'           # Response type, ttl and resource data length -> 4 bytes
-            packet += bytes(map(int, ip.split('.')))                        # 4 bytes of IP
+            packet += self.data[4:6] + self.data[4:6] + b'\x00\x00\x00\x00'  # Questions and Answers Counts
+            packet += self.data[12:]  # Original Domain Name Question
+            packet += b'\xc0\x0c'  # Pointer to domain name
+            packet += b'\x00\x01\x00\x01\x00\x00\x00\x3c\x00\x04'  # Response type, ttl and resource data length -> 4 bytes
+            packet += bytes(map(int, ip.split('.')))  # 4 bytes of IP
         return packet
 
     def find_ssid(self):
@@ -90,16 +91,19 @@ class DNSQuery:
             elif net[3] >= -50:
                 quality = 100
             else:
-                quality = 2 * (net[3] + 100)  
-            lines += '<div><a href="#" onclick="c(this)">{}</a> <span class="q {}">{:3d}%</span></div>'.format(net[0].decode('utf-8'), 'l' if net[4] > 0 else '', quality)
+                quality = 2 * (net[3] + 100)
+            lines += '<div><a href="#" onclick="c(this)">{}</a> <span class="q {}">{:3d}%</span></div>'.format(
+                net[0].decode('utf-8'), 'l' if net[4] > 0 else '', quality)
         return lines
+
 
 def start():
     # DNS Server
     ap_if = network.WLAN(network.AP_IF)
     ap_if.active(True)
     id = machine.unique_id()
-    ap_if.config(essid='ESP-{:02X}:{:02X}:{:02X}:{:02X}'.format(id[0], id[1], id[2], id[3]), authmode=1) #authmode=1 == no pass
+    ap_if.config(essid='ESP-{:02X}:{:02X}:{:02X}:{:02X}'.format(id[0], id[1], id[2], id[3]),
+                 authmode=1)  # authmode=1 == no pass
     ip = ap_if.ifconfig()[0]
     print('APDNS Server: {:s}'.format(ip))
 
@@ -116,7 +120,7 @@ def start():
     s.bind(addr)
     s.listen(1)
     s.settimeout(2)
-    #print("Web Server: Listening http://{}:80/".format(ip))
+    # print("Web Server: Listening http://{}:80/".format(ip))
 
     configured = False
     d = {}
@@ -127,7 +131,7 @@ def start():
             p = DNSQuery(data)
             udps.sendto(p.request(ip), addr)
         except:
-            #just wait for APDNS
+            # just wait for APDNS
             pass
 
         # Web loop
@@ -144,7 +148,7 @@ def start():
             if request_url == b'wifisave':
                 params = req[14:-11]
                 try:
-                    d = {key: value for (key, value) in [x.split(b'=') for x in params.split(b'&')]}
+                    d = {key: value for (key, value) in [x.replace(b'+', b' ').split(b'=') for x in params.split(b'&')]}
                     configured = True
                 except:
                     d = {}
@@ -157,9 +161,9 @@ def start():
             client_stream.write(CONTENT.replace('---lines---', p.find_ssid()))
             client_stream.close()
         except:
-            #Just wait timeout for web
+            # Just wait timeout for web
             pass
-    
+
     udps.close()
     s.close()
 

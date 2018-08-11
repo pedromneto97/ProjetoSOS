@@ -125,7 +125,7 @@ def start():
             if request_url == b'pulseirasave':
                 params = req[18:-11]
                 try:
-                    d = {key: value for (key, value) in [x.split(b'=') for x in params.split(b'&')]}
+                    d = {key: value for (key, value) in [x.replace(b'+', b' ').split(b'=') for x in params.split(b'&')]}
                     configured = True
                 except:
                     d = {}
