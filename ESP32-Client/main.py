@@ -5,8 +5,9 @@ from gc import collect
 collect()
 
 from connect import Connect
-from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, idle
-from time import sleep, sleep_ms
+from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, idle, RTC
+from time import sleep, sleep_ms, localtime
+from ntptime import settime
 from client import Client
 from pulseira import Pulseira
 
@@ -23,8 +24,8 @@ class Device:
         self.p4.value(1)
 
         # Buzzer e LED
-        self.p2 = Pin(2, Pin.OUT) #LED
-        self.p5 = Pin(5, Pin.OUT) #BUZZER
+        self.p2 = Pin(2, Pin.OUT)  # LED
+        self.p5 = Pin(5, Pin.OUT)  # BUZZER
 
         # Botão
         self.p15 = Pin(15, Pin.IN, Pin.PULL_DOWN)
@@ -113,12 +114,20 @@ def main():
             connected = device.connection.isconnected()
         else:
             if boot:
-                print('Connected as : {} - Device id : {}'.format(device.connection.ifconfig()[0], device.hex_id))
+                try:
+                    settime()
+                    l = localtime()
+                    RTC().datetime(l[0:3] + (0,) + (l[3] - 3,) + l[4:6] + (0,))
+                except:
+                    pass
+                print('Conectado como : {} - ID do dispositivo : {}'.format(device.connection.ifconfig()[0],
+                                                                            device.hex_id))
                 device.avisa()
                 sleep_ms(700)
                 device.desliga_aviso()
                 boot = False
                 break
     idle()
+
 
 main()
