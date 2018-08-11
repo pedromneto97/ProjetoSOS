@@ -152,7 +152,7 @@ def start():
                     configured = True
                 except:
                     d = {}
-            res = req[5:7]
+            res = req[5:6]
             if res == b'r':
                 try:
                     remove('pulseira.json')
