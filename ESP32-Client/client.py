@@ -2,6 +2,7 @@ import socket
 from gc import collect
 from time import sleep_ms
 
+
 # Classe client para ser utilizado na pulseira
 class Client:
 
@@ -9,6 +10,7 @@ class Client:
     def __init__(self, sta):
         self.sta = sta
 
+    # TODO-me implementar enviar o horário
     def client(self, dados, tipo):
         try:
             confs = self.sta.ifconfig()  # Recebe as configurações de endereço
@@ -30,5 +32,6 @@ class Client:
             tcp.close()  # Fecha a conexão
             return True
         except:
+            # TODO-me salvar os dados da solicitação para enviar os dados quando reconectar
             print("Não foi possível se conectar com o servidor")
             return False

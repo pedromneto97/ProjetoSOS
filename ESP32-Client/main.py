@@ -37,6 +37,8 @@ class Device:
         self.x = ADC(Pin(34))
         self.acelerometro()
 
+        # TODO-me implementar a leitura da bateria
+
         id = unique_id()
         self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
 
@@ -62,6 +64,7 @@ class Device:
         self.p5.value(0)
 
     # Função que verifica o acelerometro
+    # TODO-me cuidar da acenduação
     def verifica(self, p):
         xval = (self.x.read() - 462) / 105
         yval = (self.y.read() - 464) / 103
@@ -114,6 +117,7 @@ def main():
             connected = device.connection.isconnected()
         else:
             if boot:
+                # TODO-me timmer para verificar caso caia a rede, se reconectar
                 try:
                     settime()
                     l = localtime()

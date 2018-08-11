@@ -53,6 +53,9 @@ class Server:
                 print(list)
                 device.lista.append(list)
                 print(device.lista)
+                # TODO-me Corrigir para exibir quem acabou de solicitar
+                # TODO-me Agrupar e exibir o número de solicitações por tipo
+                # TODO-me Exibir o horário da última ou primeira solicitação
                 if len(device.lista) == 1:
                     device.oled.fill(0)
                     device.oled.text(device.lista[0]['tipo'], 0, 0)

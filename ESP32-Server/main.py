@@ -31,6 +31,7 @@ class Device:
 
         # OLED
         self.oled = SSD1306_I2C(128, 64, I2C(sda=Pin(21), scl=Pin(22)))
+        # TODO-me implementar o logo do SOS
         self.oled.fill(0)
         self.oled.text("SOS", 50, 30)
         self.oled.show()
@@ -43,6 +44,8 @@ class Device:
         self.p4 = Pin(4, Pin.IN, Pin.PULL_DOWN)
         self.p4.irq(trigger=Pin.IRQ_RISING, handler=self.remove)
 
+        # TODO-me implementar scroll
+
         # Buzzer
         self.p19 = Pin(19, Pin.OUT)
         self.p19.value(0)
@@ -54,6 +57,8 @@ class Device:
         self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
         listHexId = [];
         listHexId.append(self.hex_id)
+
+        # TODO-me implementar a leitura da bateria
 
     def proximo(self, p):
         try:
@@ -179,6 +184,7 @@ def main():
                 device.oled.text("Nenhum pedido", 0, 32)
                 device.oled.show()
             s.servidor(device)
+
 
 if __name__ == '__main__':
     main()

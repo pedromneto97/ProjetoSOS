@@ -153,6 +153,7 @@ def start():
                 except:
                     d = {}
             res = req[5:6]
+            # TODO-me testar se está funcionando o remover
             if res == b'r':
                 try:
                     remove('pulseira.json')
