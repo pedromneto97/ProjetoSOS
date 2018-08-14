@@ -10,6 +10,7 @@ from time import sleep, sleep_ms, localtime
 from ntptime import settime
 from client import Client
 from pulseira import Pulseira
+from math import pow, sqrt
 
 
 class Device:
@@ -64,16 +65,16 @@ class Device:
         self.p5.value(0)
 
     # Função que verifica o acelerometro
-    # TODO-me cuidar da acenduação
     def verifica(self, p):
+        # TODO-me verificar as funções que transformam o valor em G
         xval = (self.x.read() - 462) / 105
         yval = (self.y.read() - 464) / 103
         zval = (self.z.read() - 474) / 102
-        if abs(xval) > 2 or abs(yval) > 2 or abs(zval) > 2:
+        if sqrt(pow(xval, 2) + pow(yval, 2) + pow(zval, 2)) > 2:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
-            resp = self.client.client(self.pulseira.config, "Emergência")
+            resp = self.client.client(self.pulseira.config, "Emergencia")
             if resp == False:
                 self.avisa()
                 sleep(7)
