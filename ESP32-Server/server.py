@@ -34,7 +34,7 @@ class Server:
             # Laço das mensagens do cliente
             while True:
                 conn, addr = server.accept()  # Recebe a conecção e o endereço
-                print('Connected by' + str(addr))
+                print('Conectado por: ' + str(addr))
                 device.p19.value(1)
                 msg = conn.recv(1024)  # Recebe a mensagen
                 print(addr, msg.decode('utf-8'), end='\n')
@@ -65,7 +65,6 @@ class Server:
                 else:
                     device.oled.text("+", 110, 0)
                     device.oled.show()
-                print("Finalizando")
                 device.p19.value(0)
                 conn.close()  # Fecha a conexão
         except:
