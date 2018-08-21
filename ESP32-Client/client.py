@@ -1,6 +1,8 @@
 import socket
 from gc import collect
-from time import sleep_ms
+from time import sleep_ms, localtime
+
+import ujson
 
 
 # Classe client para ser utilizado na pulseira
@@ -17,8 +19,8 @@ class Client:
             aux = confs[0].split('.')  # Sepera o endereço IP por ponto
             HOST = str(aux[0]) + '.' + str(aux[1]) + '.' + str(aux[2]) + '.' + str(100)
             # Seta as variáveis como nada
-            confs = None
-            aux = None
+            del (confs)
+            del (aux)
             collect()
             print("Host: " + HOST)
             PORT = 5000  # Porta que o Servidor esta
@@ -32,6 +34,33 @@ class Client:
             tcp.close()  # Fecha a conexão
             return True
         except:
-            # TODO-me salvar os dados da solicitação para enviar os dados quando reconectar
+            # TODO-me validar se está funcionando corretamente e acertar o envio desses dados salvos
             print("Não foi possível se conectar com o servidor")
-            return False
+            l = {}
+            try:
+                f = open('estado.json', 'r')
+                l = ujson.loads(f.read())
+                f.close()
+            finally:
+                try:
+                    flag = True
+                    for item in l:
+                        if item['tipo'] == tipo:
+                            flag = False
+                            item['chamadas'] += 1
+                            break
+                    if flag:
+                        l.update({len(l): {
+                            'nome': dados['nome'],
+                            'quarto': dados['quarto'],
+                            'tipo': tipo,
+                            'hora': localtime(),
+                            'chamadas': 1
+                        }})
+                    f = open('estado.json', 'w')
+                    f.write(ujson.dumps(l))
+                    f.close()
+                    del (flag)
+                except:
+                    print("Erro ao salvar estado")
+        return False
