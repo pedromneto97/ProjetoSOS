@@ -66,10 +66,9 @@ class Device:
 
     # Função que verifica o acelerometro
     def verifica(self, p):
-        # TODO-me verificar as funções que transformam o valor em G
-        xval = (self.x.read() - 462) / 105
-        yval = (self.y.read() - 464) / 103
-        zval = (self.z.read() - 474) / 102
+        xval = (self.x.read() - 464) / 102
+        yval = (self.y.read() - 463) / 104
+        zval = (self.z.read() - 475) / 99.3
         if sqrt(pow(xval, 2) + pow(yval, 2) + pow(zval, 2)) > 2:
             self.avisa()
             sleep(2)
@@ -118,7 +117,7 @@ def main():
             connected = device.connection.isconnected()
         else:
             if boot:
-                # TODO-me timmer para verificar caso caia a rede, se reconectar
+                # TODO-me timer para verificar caso caia a rede, se reconectar
                 try:
                     settime()
                     l = localtime()
