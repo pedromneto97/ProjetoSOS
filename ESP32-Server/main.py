@@ -10,6 +10,7 @@ gc.collect()
 
 from os import remove
 from connect import Connect
+from logo import escreve_SOS
 from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset
 from server import Server
 from ssd1306 import SSD1306_I2C
@@ -31,9 +32,9 @@ class Device:
 
         # OLED
         self.oled = SSD1306_I2C(128, 64, I2C(sda=Pin(21), scl=Pin(22)))
-        # TODO-me implementar o logo do SOS
+        # TODO-me testar o logo do SOS
         self.oled.fill(0)
-        self.oled.text("SOS", 50, 30)
+        escreve_SOS(self.oled)
         self.oled.show()
 
         # Botão de próximo
