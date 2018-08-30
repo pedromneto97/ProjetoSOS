@@ -1,5 +1,7 @@
 # **SOS - Solução para Obtenção de Suporte**
-
+  
+  ![logo](https://raw.githubusercontent.com/pedromneto97/ProjetoSOS/master/logo128x64.png)
+  
 O projeto SOS é desenvolvido por Pedro de Mattos Mariano Mendes Neto e Ricardo Harms Schiniegoski. Este projeto é desenvolvido
 para a disciplina de Projeto de Sistema de Informação do curso de Engenharia de Computação da Universidade Estadual de Ponta Grossa (UEPG).
   
