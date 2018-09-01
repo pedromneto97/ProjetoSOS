@@ -9,7 +9,6 @@ from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, 
 from time import sleep, sleep_ms, localtime
 from ntptime import settime
 from client import Client
-from pulseira import Pulseira
 from math import pow, sqrt
 
 
@@ -18,7 +17,6 @@ class Device:
         self.c = Connect()
         self.connection = self.c.start()
         self.client = Client(self.connection)
-        self.pulseira = Pulseira()
 
         # Alimentação
         self.p4 = Pin(4, Pin.OUT)
@@ -73,8 +71,9 @@ class Device:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
-            resp = self.client.client(self.pulseira.config, "Emergencia")
-            if resp == False:
+            hora = (RTC().datetime()[4], RTC().datetime()[5])
+            resp = self.client.client(mac=self.hex_id, tipo="Emergencia", hora=hora)
+            if not resp:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
@@ -91,13 +90,18 @@ class Device:
     def button(self, p):
         try:
             irq = disable_irq()
-            self.p4.value(0)
+            if p.value() == 1:
+                self.p4.value(0)
+            else:
+                enable_irq(irq)
+                return
             enable_irq(irq)
             self.avisa()
             sleep(2)
             self.desliga_aviso()
-            resp = self.client.client(self.pulseira.config, "Ajuda")
-            if resp == False:
+            hora = (RTC().datetime()[4], RTC().datetime()[5])
+            resp = self.client.client(mac=self.hex_id, tipo="Ajuda", hora=hora)
+            if not resp:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
