@@ -64,15 +64,13 @@ class Device:
 
     def proximo(self, p):
         try:
-            # TODO-me rever esta condicional
             irq = disable_irq()
             if p.value() == 1:
-                p.value(0)
+                self.p15.value(0)
             else:
                 enable_irq(irq)
                 return
-            self.p15.value(0)
-            # TODO-me Atualizar como está sendo disponibilizado no vispor
+            # TODO-me Atualizar como está sendo disponibilizado no visor
             if len(self.lista) > 0:
                 if (self.iterador + 1) == len(self.lista):
                     self.iterador = 0
@@ -170,26 +168,27 @@ def main():
 
                 boot = False
                 device.rtc = RTC()
-            s = Server(device.connection)
-            # Try para verificar se existe um arquivo com o estado da última vez
-            try:
-                f = open('estado.json', 'r')
-                device.lista = ujson.loads(f.read())
-                f.close()
-                device.oled.fill(0)
-                device.oled.text(device.lista[device.iterador]['tipo'], 0, 0)
-                device.oled.text("Nome: " + device.lista[device.iterador]['nome'], 0, 20)
-                device.oled.text("Quarto: " + device.lista[device.iterador]['quarto'], 0, 40)
-                if len(device.lista) > 1:
-                    device.oled.text("+", 110, 0)
-                device.oled.show()
-                remove("estado.json")
-            except:
-                device.oled.fill(0)
-                device.oled.text("Nenhum pedido", 0, 32)
-                device.oled.show()
-            # TODO-me trabalhar o cadastro do novo dispositivo
-            s.servidor(device)
+                s = Server(device.connection)
+                # Try para verificar se existe um arquivo com o estado da última vez
+                try:
+                    f = open('estado.json', 'r')
+                    device.lista = ujson.loads(f.read())
+                    f.close()
+                    device.oled.fill(0)
+                    device.oled.text(device.lista[device.iterador]['tipo'], 0, 0)
+                    device.oled.text("Nome: " + device.lista[device.iterador]['nome'], 0, 20)
+                    device.oled.text("Quarto: " + device.lista[device.iterador]['quarto'], 0, 40)
+                    if len(device.lista) > 1:
+                        device.oled.text("+", 110, 0)
+                    device.oled.show()
+                    remove("estado.json")
+                except:
+                    device.oled.fill(0)
+                    device.oled.text("Nenhum pedido", 0, 32)
+                    device.oled.show()
+                # TODO-me trabalhar o cadastro do novo dispositivo
+                s.servidor(device)
+
 
 
 if __name__ == '__main__':
