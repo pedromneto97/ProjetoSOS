@@ -2,11 +2,12 @@
 
 import time
 
-import dnsquery
 import machine
 import network
 import ubinascii
 import ujson
+
+import dnsquery
 
 
 class Connect:
@@ -48,7 +49,7 @@ class Connect:
             self.sta_if.active(False)
             print('Rede não conectada')
             d = dnsquery.start()
-            self.connection(d[b's'], d[b'p'])
+            self.connection(d[b's'].decode(), d[b'p'].decode())
             if self.sta_if.isconnected():                
                 self.config[self.lconf] = [ubinascii.hexlify(ubinascii.b2a_base64(d[b's'])[:-1]),
                                             ubinascii.hexlify(ubinascii.b2a_base64(d[b'p'])[:-1])]                
