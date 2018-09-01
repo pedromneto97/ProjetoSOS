@@ -25,8 +25,8 @@ class Server:
             # Define as configurações de IP, só alterando o IP do server
             self.station.ifconfig((ip, confs[1], confs[2], confs[3]))
             # Seta as variáveis como nada
-            confs = None
-            aux = None
+            del confs
+            del aux
             server.bind((ip, 5000))  # Da bind no endereço
             server.listen(28)  # Começa a ouvir
             print("Endereço: " + ip)
@@ -37,34 +37,41 @@ class Server:
                 print('Conectado por: ' + str(addr))
                 device.p19.value(1)
                 msg = conn.recv(1024)  # Recebe a mensagen
-                print(addr, msg.decode('utf-8'), end='\n')
-                tipo = msg.decode('utf-8')
-                msg = conn.recv(1024)  # Recebe a mensagen
-                print(addr, msg.decode('utf-8'), end='\n')
-                pessoa = msg.decode('utf-8')
-                msg = conn.recv(1024)  # Recebe a mensagen
-                print(addr, msg.decode('utf-8'), end='\n')
-                quarto = msg.decode('utf-8')
-                list = ({
-                    'tipo': tipo,
-                    'nome': pessoa,
-                    'quarto': quarto
-                })
-                print(list)
-                device.lista.append(list)
-                print(device.lista)
-                # TODO-me Corrigir para exibir quem acabou de solicitar
-                # TODO-me Agrupar e exibir o número de solicitações por tipo
-                # TODO-me Exibir o horário da última ou primeira solicitação
-                if len(device.lista) == 1:
+                list = ujson.loads(msg.decode('utf-8'))
+                if list['mac'] not in device.cadastrados:
                     device.oled.fill(0)
-                    device.oled.text(device.lista[0]['tipo'], 0, 0)
-                    device.oled.text("Nome: " + device.lista[0]['nome'], 0, 20)
-                    device.oled.text("Quarto: " + device.lista[0]['quarto'], 0, 40)
+                    device.oled.text('ATENCAO!', 0, 0)
+                    device.oled.fill('CADASTRAR TRANSMISSOR!', 0, 30)
                     device.oled.show()
+                    conn.close()
+                    server.close()
+                    return
+                if list['mac'] in device.lista.keys():
+                    if list['tipo'] in device.lista.get(list['mac']).keys():
+                        device.lista.get(list['mac']).get(list['tipo']).update({
+                            "chamadas": device.lista.get(list['mac']).get(list['tipo'])['chamadas'] + list['chamadas']
+                        })
+                    else:
+                        device.lista.get(list['mac']).update({list['tipo']: {
+                            "horas": list['horas'] + ":" + list['minutos'],
+                            "chamadas": list['chamadas']
+                        }})
                 else:
+                    device.lista.update({list['mac']: {list['tipo']: {
+                        "horas": list['horas'] + ":" + list['minutos'],
+                        "chamadas": list['chamadas']
+                    }}})
+                print(device.lista)
+                # TODO-me Agrupar e exibir o número de solicitações por tipo
+                device.oled.fill(0)
+                device.oled.text(device.lista[0]['tipo'], 0, 0)
+                device.oled.text("Nome: " + device.cadastrados[list['mac']]['nome'], 0, 20)
+                device.oled.text("Quarto: " + device.cadastrados[list['mac']]['quarto'], 0, 40)
+                device.oled.text("Horario: " + list['horas'] + ':' + list['minutos'], 0, 60)
+                device.oled.text(list['chamadas'], 110, 60)
+                if len(device.lista) > 1:
                     device.oled.text("+", 110, 0)
-                    device.oled.show()
+                device.oled.show()
                 device.p19.value(0)
                 conn.close()  # Fecha a conexão
         except:

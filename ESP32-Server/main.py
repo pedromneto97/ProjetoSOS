@@ -19,8 +19,9 @@ from ssd1306 import SSD1306_I2C
 class Device:
     def __init__(self):
         # Lista
-        self.lista = []
+        self.lista = {}
         self.iterador = 0
+        self.cadastrados = {}
 
         # Pino de alimentação
         self.p15 = Pin(15, Pin.OUT)
@@ -63,6 +64,7 @@ class Device:
 
     def proximo(self, p):
         try:
+            # TODO-me rever esta condicional
             irq = disable_irq()
             if p.value() == 1:
                 p.value(0)
@@ -70,6 +72,7 @@ class Device:
                 enable_irq(irq)
                 return
             self.p15.value(0)
+            # TODO-me Atualizar como está sendo disponibilizado no vispor
             if len(self.lista) > 0:
                 if (self.iterador + 1) == len(self.lista):
                     self.iterador = 0
@@ -106,6 +109,7 @@ class Device:
                 enable_irq(irq)
                 return
             # print("Removendo")
+            # TODO-me Atualizar como está sendo disponibilizado no vispor
             if len(self.lista) == 0:
                 self.oled.fill(0)
                 self.oled.text("Nenhum pedido", 0, 32)
@@ -184,6 +188,7 @@ def main():
                 device.oled.fill(0)
                 device.oled.text("Nenhum pedido", 0, 32)
                 device.oled.show()
+            # TODO-me trabalhar o cadastro do novo dispositivo
             s.servidor(device)
 
 

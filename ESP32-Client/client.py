@@ -1,6 +1,5 @@
 import socket
 from gc import collect
-from time import sleep_ms, localtime
 
 import ujson
 
@@ -13,54 +12,79 @@ class Client:
         self.sta = sta
 
     # TODO-me implementar enviar o horário
-    def client(self, dados, tipo):
-        try:
-            confs = self.sta.ifconfig()  # Recebe as configurações de endereço
-            aux = confs[0].split('.')  # Sepera o endereço IP por ponto
-            HOST = str(aux[0]) + '.' + str(aux[1]) + '.' + str(aux[2]) + '.' + str(100)
-            # Seta as variáveis como nada
-            del (confs)
-            del (aux)
-            collect()
-            print("Host: " + HOST)
-            PORT = 5000  # Porta que o Servidor esta
-            tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
-            tcp.connect((HOST, PORT))  # Conecta com o servidor
-            tcp.send(tipo.encode('utf-8'))
-            sleep_ms(100)
-            tcp.send(dados['nome'].encode('utf-8'))  # Envia para o servidor a mensagem em utf-8
-            sleep_ms(500)
-            tcp.send(dados['quarto'].encode('utf-8'))  # Envia para o servidor a mensagem em utf-8
-            tcp.close()  # Fecha a conexão
-            return True
-        except:
-            # TODO-me validar se está funcionando corretamente e acertar o envio desses dados salvos
-            print("Não foi possível se conectar com o servidor")
-            l = {}
+    def client(self, mac, tipo, hora, chamadas=1, reenvio=False):
+        if reenvio:
             try:
-                f = open('estado.json', 'r')
-                l = ujson.loads(f.read())
-                f.close()
-            finally:
+                end = self.endereco()
+                tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
+                tcp.connect(end)  # Conecta com o servidor
+                d = {
+                    "id": mac,
+                    "tipo": tipo,
+                    "chamadas": chamadas,
+                    "horas": hora[1],
+                    "minutos": hora[2]
+                }
+                tcp.send(ujson.dumps(d).encode('utf-8'))
+                tcp.close()  # Fecha a conexão
+                return True
+            except:
+                return False
+        else:
+            try:
+                end = self.endereco()
+                tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
+                tcp.connect(end)  # Conecta com o servidor
+                d = {
+                    "id": mac,
+                    "tipo": tipo,
+                    "chamadas": chamadas,
+                    "hora": hora[1],
+                    "minuto": hora[2]
+                }
+                tcp.send(ujson.dumps(d).encode('utf-8'))
+                tcp.close()  # Fecha a conexão
+                return True
+            except:
+                # TODO-me validar se está funcionando corretamente e acertar o envio desses dados salvos
+                print("Não foi possível se conectar com o servidor")
+                l = {}
                 try:
-                    flag = True
-                    for item in l:
-                        if item['tipo'] == tipo:
-                            flag = False
-                            item['chamadas'] += 1
-                            break
-                    if flag:
-                        l.update({len(l): {
-                            'nome': dados['nome'],
-                            'quarto': dados['quarto'],
-                            'tipo': tipo,
-                            'hora': localtime(),
-                            'chamadas': 1
-                        }})
-                    f = open('estado.json', 'w')
-                    f.write(ujson.dumps(l))
+                    f = open('estado.json', 'r')
+                    l = ujson.loads(f.read())
                     f.close()
-                    del (flag)
-                except:
-                    print("Erro ao salvar estado")
-        return False
+                finally:
+                    try:
+                        flag = True
+                        for item in l:
+                            if item['tipo'] == tipo:
+                                flag = False
+                                item['chamadas'] += 1
+                                break
+                        if flag:
+                            l.update({len(l): {
+                                "tipo": tipo,
+                                "chamadas": chamadas,
+                                "hora": hora[1],
+                                "minuto": hora[2]
+                            }})
+                            f = open('estado.json', 'w')
+                            f.write(ujson.dumps(l))
+                            f.close()
+                            del l
+                            del flag
+                    except:
+                        print("Erro ao salvar estado")
+                return False
+
+    def endereco(self):
+        confs = self.sta.ifconfig()  # Recebe as configurações de endereço
+        aux = confs[0].split('.')  # Sepera o endereço IP por ponto
+        HOST = str(aux[0]) + '.' + str(aux[1]) + '.' + str(aux[2]) + '.' + str(100)
+        # Seta as variáveis como nada
+        del confs
+        del aux
+        collect()
+        print("Host: " + HOST)
+        PORT = 5000  # Porta que o Servidor esta
+        return (HOST, PORT)
