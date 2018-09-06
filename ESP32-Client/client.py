@@ -13,18 +13,18 @@ class Client:
 
     # TODO-me implementar enviar o horário
     def client(self, mac, tipo, hora, chamadas=1, reenvio=False):
+        d = {
+            "id": mac,
+            "tipo": tipo,
+            "chamadas": chamadas,
+            "horas": hora[0],
+            "minutos": hora[1]
+        }
         if reenvio:
             try:
                 end = self.endereco()
                 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
                 tcp.connect(end)  # Conecta com o servidor
-                d = {
-                    "id": mac,
-                    "tipo": tipo,
-                    "chamadas": chamadas,
-                    "horas": hora[1],
-                    "minutos": hora[2]
-                }
                 tcp.send(ujson.dumps(d).encode('utf-8'))
                 tcp.close()  # Fecha a conexão
                 return True
@@ -35,46 +35,38 @@ class Client:
                 end = self.endereco()
                 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
                 tcp.connect(end)  # Conecta com o servidor
-                d = {
-                    "id": mac,
-                    "tipo": tipo,
-                    "chamadas": chamadas,
-                    "hora": hora[1],
-                    "minuto": hora[2]
-                }
                 tcp.send(ujson.dumps(d).encode('utf-8'))
                 tcp.close()  # Fecha a conexão
                 return True
             except:
-                # TODO-me validar se está funcionando corretamente e acertar o envio desses dados salvos
                 print("Não foi possível se conectar com o servidor")
-                l = {}
+                # TODO-me fazer o reenvio dos dados
                 try:
                     f = open('estado.json', 'r')
                     l = ujson.loads(f.read())
                     f.close()
-                finally:
-                    try:
-                        flag = True
-                        for item in l:
-                            if item['tipo'] == tipo:
-                                flag = False
-                                item['chamadas'] += 1
-                                break
-                        if flag:
-                            l.update({len(l): {
-                                "tipo": tipo,
-                                "chamadas": chamadas,
-                                "hora": hora[1],
-                                "minuto": hora[2]
-                            }})
-                            f = open('estado.json', 'w')
-                            f.write(ujson.dumps(l))
-                            f.close()
-                            del l
-                            del flag
-                    except:
-                        print("Erro ao salvar estado")
+                except:
+                    l = {}
+                flag = True
+                for item in l.values():
+                    print(item)
+                    if item['tipo'] == tipo:
+                        print(item['chamadas'])
+                        flag = False
+                        item['chamadas'] += 1
+                        break
+                if flag:
+                    l.update({len(l): {
+                        "tipo": tipo,
+                        "chamadas": chamadas,
+                        "hora": hora[0],
+                        "minuto": hora[1]
+                    }})
+                f = open('estado.json', 'w')
+                f.write(ujson.dumps(l))
+                f.close()
+                del l
+                del flag
                 return False
 
     def endereco(self):

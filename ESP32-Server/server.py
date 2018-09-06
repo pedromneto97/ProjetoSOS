@@ -35,9 +35,13 @@ class Server:
                 conn, addr = server.accept()  # Recebe a conecção e o endereço
                 print('Conectado por: ' + str(addr))
                 device.p19.value(1)
-                msg = conn.recv(1024)  # Recebe a mensagen
+                msg = conn.recv(2048)  # Recebe a mensagen
                 list = ujson.loads(msg.decode('utf-8'))
-                if list['mac'] not in device.cadastrados:
+                if list['id'] not in device.cadastrados.keys():
+                    device.oled.fill(0)
+                    device.oled.text('ATENCAO!', 0, 0)
+                    device.oled.text('CADASTRAR!', 0, 30)
+                    device.oled.show()
                     conn.close()
                     device.p19.value(0)
                     continue

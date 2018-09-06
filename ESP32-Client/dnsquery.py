@@ -1,7 +1,6 @@
 # Autor: Ariangelo Hauer Dias
 
 import socket
-from os import remove
 
 import machine
 import network
@@ -32,9 +31,6 @@ HTTP/1.0 200 OK
     </head>
     <body>
         <div style="text-align:left;display:inline-block;min-width:260px;">
-            <form action="r" method="get">
-                <button>Limpar dados da pulseira</button>
-            </form>
             <br/>
             ---lines---
             <form method="get" action="wifisave">
@@ -152,13 +148,6 @@ def start():
                     configured = True
                 except:
                     d = {}
-            res = req[5:6]
-            # TODO-me testar se está funcionando o remover
-            if res == b'r':
-                try:
-                    remove('pulseira.json')
-                except:
-                    machine.reset()
             client_stream.write(CONTENT.replace('---lines---', p.find_ssid()))
             client_stream.close()
         except:
