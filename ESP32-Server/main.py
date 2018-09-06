@@ -11,17 +11,33 @@ gc.collect()
 from os import remove
 from connect import Connect
 from logo import escreve_SOS
-from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset
+from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC
 from server import Server
 from ssd1306 import SSD1306_I2C
 
 
 class Device:
     def __init__(self):
-        # Lista
-        self.lista = {}
+        # TODO-me trabalhar o cadastro do novo dispositivo
+        # Listas
+        self.lista = {
+            'emergencia': [],
+            'ajuda': [],
+            'bateria': []
+        }
         self.iterador = 0
-        self.cadastrados = {}
+        # TODO-me fazer a leitura do arquivo de cadastrados
+        self.cadastrados = {
+            self.hex_id: {
+                'nome': 'Transmissor',
+                'quarto': None
+            }
+        }
+
+        # Pino da bateria
+        self.p33 = ADC(Pin(33))
+        self.p33.width(ADC.WIDTH_12BIT)
+        self.p33.atten(ADC.ATTN_11DB)
 
         # Pino de alimentação
         self.p15 = Pin(15, Pin.OUT)
@@ -33,7 +49,6 @@ class Device:
 
         # OLED
         self.oled = SSD1306_I2C(128, 64, I2C(sda=Pin(21), scl=Pin(22)))
-        # TODO-me testar o logo do SOS
         self.oled.fill(0)
         escreve_SOS(self.oled)
         self.oled.show()
@@ -61,6 +76,8 @@ class Device:
         listHexId.append(self.hex_id)
 
         # TODO-me implementar a leitura da bateria
+        self.bateria_timer = Timer(1)
+        self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
 
     def proximo(self, p):
         try:
@@ -140,9 +157,17 @@ class Device:
                     print("Erro ao salvar estado")
             reset()
 
-    def ativa(self, p):
+    def ativa(self, t):
         if self.p15.value() == 0:
             self.p15.value(1)
+
+    def bateria(self, t):
+        tensao = 2 * self.p33.read() * 3.6 / 4096
+        if tensao < 3:
+            self.lista['bateria'].append({
+                'id': self.hex_id
+                'hora':
+            })
 
 
 def main():
@@ -163,6 +188,8 @@ def main():
                 while not setTime and timeout > 0:
                     try:
                         ntp = ntptime.settime()
+                        l = utime.localtime()
+                        RTC().datetime(l[0:3] + (0,) + (l[3] - 3,) + l[4:6] + (0,))
                         setTime = True
                     except:
                         utime.sleep(1)
@@ -188,7 +215,6 @@ def main():
                 device.oled.fill(0)
                 device.oled.text("Nenhum pedido", 0, 32)
                 device.oled.show()
-            # TODO-me trabalhar o cadastro do novo dispositivo
             s.servidor(device)
 
 
