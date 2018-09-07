@@ -4,7 +4,7 @@ from gc import collect
 import ujson
 
 
-# Classe client para ser utilizado na pulseira
+# Classe client para ser utilizado no transmissor
 class Client:
 
     # Construtor que chama o conectar
@@ -26,9 +26,8 @@ class Client:
                 tcp.connect(end)  # Conecta com o servidor
                 tcp.send(ujson.dumps(d).encode('utf-8'))
                 tcp.close()  # Fecha a conexão
-                return True
             except:
-                return False
+                raise
         else:
             try:
                 end = self.endereco()
@@ -36,7 +35,6 @@ class Client:
                 tcp.connect(end)  # Conecta com o servidor
                 tcp.send(ujson.dumps(d).encode('utf-8'))
                 tcp.close()  # Fecha a conexão
-                return True
             except:
                 print("Não foi possível se conectar com o servidor")
                 # TODO-me fazer o reenvio dos dados
@@ -58,24 +56,28 @@ class Client:
                     l.update({len(l): {
                         "tipo": tipo,
                         "chamadas": chamadas,
-                        "hora": hora[0],
-                        "minuto": hora[1]
+                        "horas": hora[0],
+                        "minutos": hora[1]
                     }})
                 f = open('estado.json', 'w')
                 f.write(ujson.dumps(l))
                 f.close()
                 del l
                 del flag
-                return False
+                raise
 
     def endereco(self):
-        confs = self.sta.ifconfig()  # Recebe as configurações de endereço
-        aux = confs[0].split('.')  # Sepera o endereço IP por ponto
-        HOST = str(aux[0]) + '.' + str(aux[1]) + '.' + str(aux[2]) + '.' + str(100)
-        # Seta as variáveis como nada
-        del confs
-        del aux
-        collect()
-        print("Host: " + HOST)
-        PORT = 5000  # Porta que o Servidor esta
-        return (HOST, PORT)
+        try:
+            confs = self.sta.ifconfig()  # Recebe as configurações de endereço
+            aux = confs[0].split('.')  # Sepera o endereço IP por ponto
+            HOST = str(aux[0]) + '.' + str(aux[1]) + '.' + str(aux[2]) + '.' + str(100)
+            # Seta as variáveis como nada
+            del confs
+            del aux
+            collect()
+            print("Host: " + HOST)
+            PORT = 5000  # Porta que o Servidor esta
+            return (HOST, PORT)
+        except:
+            print("Erro ao capturar o HOST")
+            raise
