@@ -38,8 +38,6 @@ class Device:
         self.x = ADC(Pin(34))
         self.acelerometro()
 
-        # TODO-me implementar a leitura da bateria
-
         # TODO-me testar a leitura da bateria
         # Pino da bateria
         self.p33 = ADC(Pin(33))
