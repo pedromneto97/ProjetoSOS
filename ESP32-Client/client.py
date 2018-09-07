@@ -11,7 +11,6 @@ class Client:
     def __init__(self, sta):
         self.sta = sta
 
-    # TODO-me implementar enviar o horário
     def client(self, mac, tipo, hora, chamadas=1, reenvio=False):
         d = {
             "id": mac,
