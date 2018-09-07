@@ -1,19 +1,21 @@
 # Contribuição: Ariangelo Hauer Dias
 
 from gc import collect
+from math import pow, sqrt
+from time import sleep, sleep_ms, localtime
 
-collect()
-
+from client import Client
 from connect import Connect
 from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, idle, RTC
-from time import sleep, sleep_ms, localtime
 from ntptime import settime
-from client import Client
-from math import pow, sqrt
+from tipo import Tipo
 
 
 class Device:
     def __init__(self):
+        id = unique_id()
+        self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
+
         self.c = Connect()
         self.connection = self.c.start()
         self.client = Client(self.connection)
@@ -38,8 +40,15 @@ class Device:
 
         # TODO-me implementar a leitura da bateria
 
-        id = unique_id()
-        self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
+        # TODO-me testar a leitura da bateria
+        # Pino da bateria
+        self.p33 = ADC(Pin(33))
+        self.p33.width(ADC.WIDTH_12BIT)
+        self.p33.atten(ADC.ATTN_11DB)
+
+        # Timer da bateria
+        self.bateria_timer = Timer(1)
+        self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
 
     def acelerometro(self):
         self.x.width(ADC.WIDTH_10BIT)
@@ -72,7 +81,7 @@ class Device:
             sleep(2)
             self.desliga_aviso()
             hora = (RTC().datetime()[4], RTC().datetime()[5])
-            resp = self.client.client(mac=self.hex_id, tipo="Emergencia", hora=hora)
+            resp = self.client.client(mac=self.hex_id, tipo=Tipo.EMERGENCIA, hora=hora)
             if not resp:
                 self.avisa()
                 sleep(7)
@@ -100,7 +109,7 @@ class Device:
             sleep(2)
             self.desliga_aviso()
             hora = (RTC().datetime()[4], RTC().datetime()[5])
-            resp = self.client.client(mac=self.hex_id, tipo="Ajuda", hora=hora)
+            resp = self.client.client(mac=self.hex_id, tipo=Tipo.AJUDA, hora=hora)
             if not resp:
                 self.avisa()
                 sleep(7)
@@ -109,6 +118,19 @@ class Device:
             t.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
         except:
             reset()
+
+    def bateria(self, t):
+        tensao = 2 * self.p33.read() * 3.6 / 4096
+        if tensao < 3:
+            self.avisa()
+            sleep(2)
+            self.desliga_aviso()
+            hora = (RTC().datetime()[4], RTC().datetime()[5])
+            resp = self.client.client(mac=self.hex_id, tipo=Tipo.BATERIA, hora=hora)
+            if not resp:
+                self.avisa()
+                sleep(7)
+                self.desliga_aviso()
 
 
 def main():
@@ -128,14 +150,11 @@ def main():
                     RTC().datetime(l[0:3] + (0,) + (l[3] - 3,) + l[4:6] + (0,))
                 except:
                     pass
-                print('Conectado como : {} - ID do dispositivo : {}'.format(device.connection.ifconfig()[0],
-                                                                            device.hex_id))
                 device.avisa()
                 sleep_ms(700)
                 device.desliga_aviso()
                 boot = False
-                break
-    idle()
-
+            collect()
+            idle()
 
 main()
