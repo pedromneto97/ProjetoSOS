@@ -3,6 +3,7 @@ from gc import collect
 
 import ujson
 from machine import reset
+from tipo import Tipo
 
 
 # Classe do server
@@ -34,12 +35,12 @@ class Server:
             while True:
                 conn, addr = server.accept()  # Recebe a conecção e o endereço
                 print('Conectado por: ' + str(addr))
-                device.p19.value(1)
+                device.avisa()
                 msg = conn.recv(2048)  # Recebe a mensagen
                 l = ujson.loads(msg.decode('utf-8'))
                 if l['id'] not in device.cadastrados.keys():
                     conn.close()
-                    device.p19.value(0)
+                    device.desliga_aviso()
                     continue
                 if l['tipo'] in device.lista.keys():
                     flag = True
@@ -58,7 +59,7 @@ class Server:
                         })
                     del flag
                 else:
-                    device.p19.value(0)
+                    device.desliga_aviso()
                     conn.close()
                     continue
                 print(device.lista)
@@ -75,11 +76,12 @@ class Server:
                     device.oled.text("+", 110, 0)
                 del contador
                 device.oled.show()
-                device.p19.value(0)
+                device.desliga_aviso()
                 collect()
                 conn.close()  # Fecha a conexão
         except:
-            if len(self.lista['emergencia']) > 0 or len(self.lista['ajuda']) > 0 or len(self.lista['bateria']) > 0:
+            if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
+                    self.lista[Tipo.BATERIA]) > 0:
                 try:
                     f = open('estado.json', 'w')
                     f.write(ujson.dumps(device.lista))
