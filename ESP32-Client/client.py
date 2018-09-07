@@ -37,7 +37,7 @@ class Client:
                 tcp.close()  # Fecha a conexão
             except:
                 print("Não foi possível se conectar com o servidor")
-                # TODO-me fazer o reenvio dos dados
+                # TODO-me testar o reenvio dos dados
                 try:
                     f = open('estado.json', 'r')
                     l = ujson.loads(f.read())
