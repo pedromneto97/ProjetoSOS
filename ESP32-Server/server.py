@@ -36,29 +36,25 @@ class Server:
                 print('Conectado por: ' + str(addr))
                 device.p19.value(1)
                 msg = conn.recv(2048)  # Recebe a mensagen
-                list = ujson.loads(msg.decode('utf-8'))
-                if list['id'] not in device.cadastrados.keys():
-                    device.oled.fill(0)
-                    device.oled.text('ATENCAO!', 0, 0)
-                    device.oled.text('CADASTRAR!', 0, 30)
-                    device.oled.show()
+                l = ujson.loads(msg.decode('utf-8'))
+                if l['id'] not in device.cadastrados.keys():
                     conn.close()
                     device.p19.value(0)
                     continue
-                if list['tipo'] in device.lista.keys():
+                if l['tipo'] in device.lista.keys():
                     flag = True
-                    for item in device.lista[list['tipo']]:
-                        if item['id'] == list['id']:
+                    for item in device.lista[l['tipo']]:
+                        if item['id'] == l['id']:
                             item['chamadas'] += 1
-                            list['chamadas'] = item['chamadas']
+                            l['chamadas'] = item['chamadas']
                             flag = False
                             break
                     if flag:
-                        device.lista[list['tipo']].append({
-                            'id': list['mac'],
-                            'horas': list['horas'],
-                            'minutos': list['minutos'],
-                            'chamadas': list['chamadas']
+                        device.lista[l['tipo']].append({
+                            'id': l['mac'],
+                            'horas': l['horas'],
+                            'minutos': l['minutos'],
+                            'chamadas': l['chamadas']
                         })
                     del flag
                 else:
@@ -67,19 +63,26 @@ class Server:
                     continue
                 print(device.lista)
                 device.oled.fill(0)
-                device.oled.text(device.lista[list['tipo']], 0, 0)
-                device.oled.text("Nome: " + device.cadastrados[list['mac']]['nome'], 0, 20)
-                device.oled.text("Quarto: " + device.cadastrados[list['mac']]['quarto'], 0, 40)
-                device.oled.text("Horario: " + list['horas'] + ':' + list['minutos'], 0, 60)
-                device.oled.text(device.list['chamadas'], 110, 60)
-                if len(device.lista) > 1:
+                device.oled.text(l['tipo'], 0, 0)
+                device.oled.text("Nome: " + device.cadastrados[l['mac']]['nome'], 0, 20)
+                device.oled.text("Quarto: " + device.cadastrados[l['mac']]['quarto'], 0, 40)
+                device.oled.text("Horario: " + l['horas'] + ':' + l['minutos'], 0, 60)
+                device.oled.text(l['chamadas'], 110, 60)
+                f = False
+                if len(device.lista['emergencia']) > 0:
+                    if len(device.lista['ajuda']) > 0 or len(device.lista['bateria']) > 0:
+                        f = True
+                elif len(device.lista['ajuda']) > 0 and len(device.lista['bateria']) > 0:
+                    f = True
+                if f:
                     device.oled.text("+", 110, 0)
+                del f
                 device.oled.show()
                 device.p19.value(0)
                 collect()
                 conn.close()  # Fecha a conexão
         except:
-            if len(device.lista) > 0:
+            if len(self.lista['emergencia']) > 0 or len(self.lista['ajuda']) > 0 or len(self.lista['bateria']) > 0:
                 try:
                     f = open('estado.json', 'w')
                     f.write(ujson.dumps(device.lista))
