@@ -68,15 +68,12 @@ class Server:
                 device.oled.text("Quarto: " + device.cadastrados[l['mac']]['quarto'], 0, 40)
                 device.oled.text("Horario: " + l['horas'] + ':' + l['minutos'], 0, 60)
                 device.oled.text(l['chamadas'], 110, 60)
-                f = False
-                if len(device.lista['emergencia']) > 0:
-                    if len(device.lista['ajuda']) > 0 or len(device.lista['bateria']) > 0:
-                        f = True
-                elif len(device.lista['ajuda']) > 0 and len(device.lista['bateria']) > 0:
-                    f = True
-                if f:
+                contador = 0
+                for chave, valor in device.lista.items():
+                    contador += len(valor)
+                if contador > 1:
                     device.oled.text("+", 110, 0)
-                del f
+                del contador
                 device.oled.show()
                 device.p19.value(0)
                 collect()
