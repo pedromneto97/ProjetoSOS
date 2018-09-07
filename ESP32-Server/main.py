@@ -230,6 +230,8 @@ class Device:
     def bateria(self, t):
         tensao = 2 * self.p33.read() * 3.6 / 4096
         if tensao < 3:
+            self.avisa()
+            utime.sleep(1)
             for item in self.lista[Tipo.BATERIA]:
                 if item['id'] == self.hex_id:
                     item['chamadas'] += 1
@@ -240,10 +242,17 @@ class Device:
                         'minuto': RTC().datetime()[5],
                         'chamadas': 1
                     })
+            self.desliga_aviso()
 
     def inativo(self, t):
         t.deinit()
         self.oled.poweroff()
+
+    def avisa(self):
+        self.p19.value(1)
+
+    def desliga_aviso(self):
+        self.p19.value(0)
 
 
 def main():
