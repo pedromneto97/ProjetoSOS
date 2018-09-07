@@ -2,12 +2,11 @@
 
 import time
 
+import dnsquery
 import machine
 import network
 import ubinascii
 import ujson
-
-import dnsquery
 
 
 class Connect:
