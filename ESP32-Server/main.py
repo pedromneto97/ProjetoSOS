@@ -71,8 +71,13 @@ class Device:
         self.p19 = Pin(19, Pin.OUT)
         self.p19.value(0)
 
+        self.t_rede = Timer(2)
+        self.t_rede.init(period=300000, mode=Timer.PERIODIC, callback=reset())
+
         self.c = Connect()
         self.connection = self.c.start()
+
+        self.t_rede.deinit()
 
         # TODO-me testar a leitura da bateria
         self.bateria_timer = Timer(1)
