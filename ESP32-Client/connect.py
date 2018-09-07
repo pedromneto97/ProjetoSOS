@@ -32,7 +32,7 @@ class Connect:
             time.sleep(1)
             timeout -= 1
 
-    def start(self):
+    def start(self, boot=True):
         if not self.sta_if.isconnected():
             print('Tentando conectar...', end="")
             self.sta_if.active(True)
@@ -44,7 +44,7 @@ class Connect:
                 time.sleep_ms(200)
                 i += 1
 
-        if not self.sta_if.isconnected():
+        if not self.sta_if.isconnected() and boot:
             self.sta_if.active(False)
             print('Rede não conectada')
             d = dnsquery.start()
