@@ -4,6 +4,7 @@ from gc import collect
 from math import pow, sqrt
 from time import sleep, sleep_ms, localtime
 
+import ujson
 from client import Client
 from connect import Connect
 from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, idle, RTC
@@ -15,10 +16,6 @@ class Device:
     def __init__(self):
         id = unique_id()
         self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
-
-        self.c = Connect()
-        self.connection = self.c.start()
-        self.client = Client(self.connection)
 
         # Alimentação
         self.p4 = Pin(4, Pin.OUT)
@@ -47,6 +44,17 @@ class Device:
         # Timer da bateria
         self.bateria_timer = Timer(1)
         self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
+
+        self.t_reenvio = Timer(3)
+
+        self.t_rede = Timer(2)
+        self.t_rede.init(period=300000, mode=Timer.PERIODIC, callback=reset())
+
+        self.c = Connect()
+        self.connection = self.c.start()
+        self.client = Client(self.connection)
+
+        self.t_rede.deinit()
 
     def acelerometro(self):
         self.x.width(ADC.WIDTH_10BIT)
@@ -79,11 +87,16 @@ class Device:
             sleep(2)
             self.desliga_aviso()
             hora = (RTC().datetime()[4], RTC().datetime()[5])
-            resp = self.client.client(mac=self.hex_id, tipo=Tipo.EMERGENCIA, hora=hora)
-            if not resp:
+            try:
+                self.client.client(mac=self.hex_id, tipo=Tipo.EMERGENCIA, hora=hora)
+            except:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
+                try:
+                    self.t_reenvio.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reenviar)
+                except:
+                    pass
 
     # Alimenta o botão novamente
     def ativa(self, p):
@@ -107,11 +120,16 @@ class Device:
             sleep(2)
             self.desliga_aviso()
             hora = (RTC().datetime()[4], RTC().datetime()[5])
-            resp = self.client.client(mac=self.hex_id, tipo=Tipo.AJUDA, hora=hora)
-            if not resp:
+            try:
+                self.client.client(mac=self.hex_id, tipo=Tipo.AJUDA, hora=hora)
+            except:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
+                try:
+                    self.t_reenvio.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reenviar)
+                except:
+                    pass
             t = Timer(-1)
             t.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
         except:
@@ -124,11 +142,31 @@ class Device:
             sleep(2)
             self.desliga_aviso()
             hora = (RTC().datetime()[4], RTC().datetime()[5])
-            resp = self.client.client(mac=self.hex_id, tipo=Tipo.BATERIA, hora=hora)
-            if not resp:
+            try:
+                self.client.client(mac=self.hex_id, tipo=Tipo.BATERIA, hora=hora)
+            except:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
+                try:
+                    self.t_reenvio.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reenviar)
+                except:
+                    pass
+
+    def reenviar(self, t):
+        try:
+            f = open('estado.json', 'r')
+            l = ujson.loads(f.read())
+            f.close()
+            for chave, valor in l.items():
+                try:
+                    self.client.client(mac=self.hex_id, tipo=valor['tipo'], hora=(valor['horas'], valor['minutos']),
+                                       chamadas=valor['chamadas'])
+                    t.deinit()
+                except:
+                    pass
+        except:
+            print("Arquivo inexistente")
 
 
 def main():
@@ -139,9 +177,18 @@ def main():
     while True:
         if not connected:
             connected = device.connection.isconnected()
+            if not boot:
+                print("Reconectando a rede")
+                device.connection.start(False)
+                device.t_rede.init(period=300000, mode=Timer.PERIODIC, callback=reset())
+                boot = True
         else:
             if boot:
-                # TODO-me timer para verificar caso caia a rede, se reconectar
+                # TODO-me Testar timer para verificar caso caia a rede, se reconectar
+                try:
+                    device.t_rede.deinit()
+                except:
+                    pass
                 try:
                     settime()
                     l = localtime()
@@ -154,5 +201,6 @@ def main():
                 boot = False
             collect()
             idle()
+
 
 main()
