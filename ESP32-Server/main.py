@@ -2,6 +2,7 @@
 
 from os import remove
 
+import cadastro
 import ujson
 import utime
 from connect import Connect
@@ -65,23 +66,39 @@ class Device:
         self.p4 = Pin(4, Pin.IN, Pin.PULL_DOWN)
         self.p4.irq(trigger=Pin.IRQ_RISING, handler=self.remove)
 
+        # TODO-me testar a leitura da bateria
+        self.bateria_timer = Timer(1)
+        self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
+
         # TODO-me implementar scroll
 
         # Buzzer
         self.p19 = Pin(19, Pin.OUT)
         self.p19.value(0)
 
-        self.t_rede = Timer(2)
-        self.t_rede.init(period=300000, mode=Timer.PERIODIC, callback=reset())
+        self.t_boot = Timer(2)
+        self.t_boot.init(period=300000, mode=Timer.PERIODIC, callback=reset())
 
         self.c = Connect()
         self.connection = self.c.start()
 
-        self.t_rede.deinit()
+        self.t_boot.deinit()
 
-        # TODO-me testar a leitura da bateria
-        self.bateria_timer = Timer(1)
-        self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
+        self.server = Server(self.connection)
+
+        self.tempo_boot = True
+        # TODO-me testar cadastro
+        while self.tempo_boot:
+            self.t_boot.init(period=100000, mode=Timer.ONE_SHOT, callback=self.fim_cadastro)
+            mac = self.server.servidor(device=self, cadastro=True)
+            self.t_boot.deinit()
+            dados = cadastro.start(mac)
+            self.cadastrados.update({
+                mac: {
+                    'nome': dados[b'nome'].decode(),
+                    'quarto': dados[b'quarto'].decode()
+                }
+            })
 
         # TODO-me testar timer de inatividade
         self.inatividade = Timer(2)
@@ -91,6 +108,9 @@ class Device:
         self.oled.poweron()
         self.inatividade.deinit()
         self.inatividade.init(period=300000, mode=Timer.ONE_SHOT, callback=self.inativo)
+
+    def fim_cadastro(self, t):
+        self.t_boot = False
 
     def proximo(self, p):
         try:
@@ -302,8 +322,7 @@ def main():
                     device.oled.fill(0)
                     device.oled.text("Nenhum pedido", 0, 32)
                     device.oled.show()
-                s = Server(device.connection)
-            s.servidor(device)
+            device.server.servidor(device)
 
 
 if __name__ == '__main__':
