@@ -84,6 +84,7 @@ class Server:
                         conn.close()
                         continue
                     print(device.lista)
+                    device.reinicia_inativo()
                     device.oled.fill(0)
                     device.oled.text(l['tipo'], 0, 0)
                     device.oled.text("Nome: " + device.cadastrados[l['mac']]['nome'], 0, 20)
