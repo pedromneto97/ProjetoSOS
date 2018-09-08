@@ -87,12 +87,22 @@ class Device:
         self.server = Server(self.connection)
 
         self.tempo_boot = True
+        self.oled.fill(0)
+        self.oled.text("CADASTRO", 0, 32)
+        self.oled.show()
         # TODO-me testar cadastro
         while self.tempo_boot:
             self.t_boot.init(period=100000, mode=Timer.ONE_SHOT, callback=self.fim_cadastro)
             mac = self.server.servidor(device=self, cadastro=True)
             self.t_boot.deinit()
+            self.oled.fill(0)
+            self.oled.text("ID:", 0, 20)
+            self.oled.text(mac, 0, 32)
+            self.oled.show()
+            self.t_boot.init(period=120000, mode=Timer.ONE_SHOT, callback=self.fim_cadastro)
             dados = cadastro.start(mac)
+            self.t_boot.deinit()
+            self.escreve_oled(nome=dados[b'nome'].decode(), quarto=dados[b'quarto'].decode())
             self.cadastrados.update({
                 mac: {
                     'nome': dados[b'nome'].decode(),
@@ -112,14 +122,15 @@ class Device:
     def fim_cadastro(self, t):
         self.t_boot = False
 
-    def proximo(self, p):
+    def proximo(self, p=None, flag=True):
         try:
             irq = disable_irq()
-            if p.value() == 1:
-                self.p15.value(0)
-            else:
-                enable_irq(irq)
-                return
+            if flag:
+                if p.value() == 1:
+                    self.p15.value(0)
+                else:
+                    enable_irq(irq)
+                    return
             self.reinicia_inativo()
             # TODO-me Verificar como está sendo disponibilizado no visor
             contador = 0
@@ -128,13 +139,16 @@ class Device:
                 contador += len(valor)
             if contador == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
+                self.oled.show()
             elif len(self.lista[self.iterador['tipo']]) >= self.iterador['iterador'] + 1:
+                # Se for o último, verifica do começo
                 if self.iterador['tipo'] == Tipo.BATERIA:
                     for chave, valor in self.lista.items():
                         if len(valor) > 0:
                             self.iterador['tipo'] = chave
                             break
                 else:
+                    # Verifica para cada tipo, poderia dar problema se o iterador tivesse no meio então foi feito a mão
                     if self.iterador['tipo'] == Tipo.EMERGENCIA:
                         if len(self.lista[Tipo.AJUDA]) > 0:
                             self.iterador['tipo'] = Tipo.AJUDA
@@ -149,21 +163,17 @@ class Device:
             else:
                 self.iterador['iterador'] += 1
             if contador > 0:
-                self.oled.text(self.iterador['tipo'], 0, 0)
-                self.oled.text(
-                    "Nome: " + self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']][
-                        'nome'], 0, 20)
-                self.oled.text(
-                    "Quarto: " + self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']][
-                        'quarto'], 0, 40)
-                self.oled.text(
-                    "Horario: " + self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas'] + ':' +
-                    self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos'], 0,
-                    60)
-                self.oled.text(self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas'], 110, 60)
-                if contador > 1:
-                    self.oled.text("+", 110, 0)
-            self.oled.show()
+                tipo = self.iterador['tipo']
+                nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
+                quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
+                hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
+                minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
+                chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
+                if contador == 1:
+                    self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas)
+                elif contador > 1:
+                    self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
+                                      multiplos=True)
             enable_irq(irq)
         except:
             if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
@@ -188,8 +198,15 @@ class Device:
             # TODO-me Verificar como está sendo disponibilizado no visor
             self.oled.fill(0)
             contador = 0
+            tipo = None
+            nome = None
+            quarto = None
+            chamadas = None
+            hora = None
+            minuto = None
             if len(self.lista['emergencia']) == 0 and len(self.lista['ajuda']) == 0 and len(self.lista['bateria']) == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
+                self.oled.show()
             elif len(self.lista[self.iterador['tipo']]) > 1:
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
                 if len(self.lista[self.iterador['tipo']]) == self.iterador['iterador']:
@@ -197,18 +214,12 @@ class Device:
                         'tipo': 'emergencia',
                         'iterador': 0
                     }
-                self.oled.text(self.iterador['tipo'], 0, 0)
-                self.oled.text(
-                    "Nome: " + self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']][
-                        'nome'], 0, 20)
-                self.oled.text(
-                    "Quarto: " + self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']][
-                        'quarto'], 0, 40)
-                self.oled.text(
-                    "Horario: " + self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas'] + ':' +
-                    self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos'], 0,
-                    60)
-                self.oled.text(self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas'], 110, 60)
+                tipo = self.iterador['tipo']
+                nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
+                quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
+                hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
+                minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
+                chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
                 for chave, valor in self.lista.items():
                     contador += len(valor)
             else:
@@ -224,18 +235,20 @@ class Device:
                             'tipo': chave,
                             'iterador': 0
                         }
-                        self.oled.text(chave, 0, 0)
-                        self.oled.text("Nome: " + self.cadastrados[valor[0]['id']]['nome'], 0, 20)
-                        self.oled.text("Quarto: " + self.cadastrados[valor[0]['id']]['quarto'], 0, 40)
-                        self.oled.text(
-                            "Horario: " + valor[0]['horas'] + ':' + valor[0]['minutos'], 0,
-                            60)
-                        self.oled.text(valor[0]['chamadas'], 110, 60)
+                        tipo = chave
+                        nome = self.cadastrados[valor[0]['id']]['nome']
+                        quarto = self.cadastrados[valor[0]['id']]['quarto']
+                        hora = valor[0]['horas']
+                        minuto = valor[0]['minutos']
+                        chamadas = valor[0]['chamadas']
             if contador == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
+                self.oled.show()
+            elif contador == 1:
+                self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas)
             elif contador > 1:
-                self.oled.text("+", 110, 0)
-            self.oled.show()
+                self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
+                                  multiplos=True)
             enable_irq(irq)
         except:
             if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
@@ -268,6 +281,31 @@ class Device:
                         'chamadas': 1
                     })
             self.desliga_aviso()
+
+    def escreve_oled(self, tipo=None, nome=None, quarto=None, hora=None, minuto=None, chamadas=None, scroll=False,
+                     rm=False, multiplos=False):
+        self.oled.fill(0)
+        if not scroll:
+            if not (tipo is None):
+                self.oled.text(tipo, 0, 0)
+            if not (nome is None):
+                self.oled.text("Nome: " + nome, 0, 10)
+            if not (quarto is None):
+                self.oled.text("Quarto: " + quarto, 0, 20)
+            if not (hora is None) or not (minuto is None):
+                self.oled.text("Horario: " + str(hora) + ':' + str(minuto).zfill(2), 0, 30)
+            if not (chamadas is None):
+                self.oled.text(chamadas, 110, 55)
+            if multiplos:
+                self.oled.text("+", 110, 0)
+            self.oled.show()
+        else:
+            if rm:
+                pass
+                # Scroll para a direita
+            else:
+                pass
+                # Scroll para baixo
 
     def inativo(self, t):
         t.deinit()
@@ -316,7 +354,7 @@ def main():
                     f = open('estado.json', 'r')
                     device.lista = ujson.loads(f.read())
                     f.close()
-                    device.proximo(device.p15)
+                    device.proximo(flag=False)
                     remove("estado.json")
                 except:
                     device.oled.fill(0)
