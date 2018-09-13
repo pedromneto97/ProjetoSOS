@@ -3,12 +3,12 @@
 from os import remove
 
 import cadastro
+import ntptime
 import ujson
 import utime
 from connect import Connect
 from logo import escreve_SOS
 from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC
-from ntptime import settime
 from ssd1306 import SSD1306_I2C
 from tipo import Tipo
 
@@ -49,7 +49,7 @@ class Device:
         self.p15.value(1)
 
         # Timer que ativa o botão depois de 400ms
-        self.t = Timer(-1)
+        self.t = Timer(0)
         self.t.init(period=400, mode=Timer.PERIODIC, callback=self.ativa)
 
         # OLED
@@ -77,8 +77,7 @@ class Device:
         self.p19.value(0)
 
         self.t_boot = Timer(2)
-        self.t_boot.init(period=300000, mode=Timer.PERIODIC, callback=reset())
-
+        self.t_boot.init(period=300000, mode=Timer.PERIODIC, callback=self.reiniciar)
         self.c = Connect()
         self.connection = self.c.start()
 
@@ -92,7 +91,8 @@ class Device:
         self.oled.show()
         # TODO-me testar cadastro
         while self.tempo_boot:
-            self.t_boot.init(period=100000, mode=Timer.ONE_SHOT, callback=self.fim_cadastro)
+            self.t_boot.init(period=100000, mode=Timer.ONE_SHOT, callback=
+            break)
             mac = self.server.servidor(device=self, cadastro=True)
             self.t_boot.deinit()
             self.oled.fill(0)
@@ -118,6 +118,9 @@ class Device:
         self.oled.poweron()
         self.inatividade.deinit()
         self.inatividade.init(period=300000, mode=Timer.ONE_SHOT, callback=self.inativo)
+
+    def reiniciar(self, t):
+        reset()
 
     def fim_cadastro(self, t):
         self.t_boot = False
@@ -322,14 +325,13 @@ def main():
     device = Device()
     connected = device.connection.isconnected()
     boot = True
-
     while True:
         if not connected:
             connected = device.connection.isconnected()
         else:
             if boot:
                 try:
-                    settime()
+                    ntptime.settime()
                     l = utime.localtime()
                     RTC().datetime(l[0:3] + (0,) + (l[3] - 3,) + l[4:6] + (0,))
                 except:
