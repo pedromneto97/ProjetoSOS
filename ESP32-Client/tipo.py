@@ -1,7 +1,4 @@
-from enum import Enum
-
-
-class Tipo(Enum):
+class Tipo:
     EMERGENCIA = 'Emergencia'
     AJUDA = 'Ajuda'
     BATERIA = 'Bateria'
