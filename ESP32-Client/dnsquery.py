@@ -98,7 +98,7 @@ def start():
     ap_if = network.WLAN(network.AP_IF)
     ap_if.active(True)
     id = machine.unique_id()
-    ap_if.config(essid='ESP-{:02X}:{:02X}:{:02X}:{:02X}'.format(id[0], id[1], id[2], id[3]),
+    ap_if.config(essid='ESP Transmissor-{:02X}:{:02X}:{:02X}:{:02X}'.format(id[0], id[1], id[2], id[3]),
                  authmode=1)  # authmode=1 == no pass
     ip = ap_if.ifconfig()[0]
     print('APDNS Server: {:s}'.format(ip))
