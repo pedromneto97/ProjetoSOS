@@ -291,11 +291,11 @@ class Device:
             if not (nome is None):
                 self.oled.text("Nome: " + nome, 0, 10)
             if not (quarto is None):
-                self.oled.text("Quarto: " + quarto, 0, 20)
+                self.oled.text("Quarto: " + str(quarto), 0, 20)
             if not (hora is None) or not (minuto is None):
                 self.oled.text("Horario: " + str(hora) + ':' + str(minuto).zfill(2), 0, 30)
             if not (chamadas is None):
-                self.oled.text(chamadas, 110, 55)
+                self.oled.text(str(chamadas), 110, 55)
             if multiplos:
                 self.oled.text("+", 110, 0)
             self.oled.show()
