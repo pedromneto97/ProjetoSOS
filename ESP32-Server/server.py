@@ -3,6 +3,7 @@ from gc import collect
 
 import ujson
 from machine import reset
+
 from tipo import Tipo
 
 
@@ -45,12 +46,13 @@ class Server:
                     conn.close()
                     server.close()
                     return l['id']
+                conn.close()
         else:
             try:
                 end = self.endereco()
                 server.bind(end)  # Da bind no endereço
                 server.listen(28)  # Começa a ouvir
-                print("Endereço: " + end)
+                print("Endereço: " + str(end))
                 print("Esperando:\n")
                 # Laço das mensagens do cliente
                 while True:
@@ -73,7 +75,7 @@ class Server:
                                 break
                         if flag:
                             device.lista[l['tipo']].append({
-                                'id': l['mac'],
+                                'id': l['id'],
                                 'horas': l['horas'],
                                 'minutos': l['minutos'],
                                 'chamadas': l['chamadas']
@@ -83,27 +85,27 @@ class Server:
                         device.desliga_aviso()
                         conn.close()
                         continue
-                    print(device.lista)
                     device.reinicia_inativo()
-                    device.oled.fill(0)
-                    device.oled.text(l['tipo'], 0, 0)
-                    device.oled.text("Nome: " + device.cadastrados[l['mac']]['nome'], 0, 20)
-                    device.oled.text("Quarto: " + device.cadastrados[l['mac']]['quarto'], 0, 40)
-                    device.oled.text("Horario: " + l['horas'] + ':' + l['minutos'], 0, 60)
-                    device.oled.text(l['chamadas'], 110, 60)
                     contador = 0
+                    ind = next(i for i, valor in enumerate(device.lista[l['tipo']]) if valor['id'] == l['id'])
+                    device.iterador = {
+                        'tipo': l['tipo'],
+                        'iterador': ind
+                    }
+                    print(str(ind))
                     for chave, valor in device.lista.items():
                         contador += len(valor)
-                    if contador > 1:
-                        device.oled.text("+", 110, 0)
-                    del contador
+                    device.escreve_oled(tipo=l['tipo'], nome=device.cadastrados[l['id']]['nome'],
+                                        quarto=device.cadastrados[l['id']]['quarto'], hora=l['horas'],
+                                        minuto=l['minutos'],
+                                        chamadas=l['chamadas'], multiplos=contador > 1)
                     device.oled.show()
                     device.desliga_aviso()
                     collect()
                     conn.close()  # Fecha a conexão
             except:
-                if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
-                        self.lista[Tipo.BATERIA]) > 0:
+                if len(device.lista[Tipo.EMERGENCIA]) > 0 or len(device.lista[Tipo.AJUDA]) > 0 or len(
+                        device.lista[Tipo.BATERIA]) > 0:
                     try:
                         f = open('estado.json', 'w')
                         f.write(ujson.dumps(device.lista))
