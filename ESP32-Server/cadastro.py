@@ -13,6 +13,7 @@ HTTP/1.0 200 OK
 <html lang="pt-br">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+        <meta charset="utf-8"> 
         <title>Cadastro</title>
         <style>
             .c{text-align: center;}
@@ -78,7 +79,7 @@ class DNSQuery:
         return packet
 
 
-def start(id):
+def start(identificacao):
     # DNS Server
     ap_if = network.WLAN(network.AP_IF)
     ap_if.active(True)
@@ -125,16 +126,16 @@ def start(id):
                 if h == b"" or h == b"\r\n" or h == None:
                     break
 
-            request_url = req[5:13]
+            request_url = req[5:18]
             if request_url == b'salvacadastro':
-                params = req[14:-11]
+                params = req[19:-11]
                 try:
                     d = {key: value for (key, value) in [x.replace(b'+', b' ').split(b'=') for x in params.split(b'&')]}
                     configured = True
                 except:
                     d = {}
 
-            client_stream.write(CONTENT.replace('---lines---', id))
+            client_stream.write(CONTENT.replace('---lines---', identificacao))
             client_stream.close()
         except:
             # Just wait timeout for web
@@ -148,17 +149,16 @@ def start(id):
         f = open('cadastros.json', 'r')
         l = ujson.loads(f.read())
         f.close()
-    finally:
-        try:
-            l.update({
-                id: {
-                    'nome': d[b'nome'].decode(),
-                    'quarto': d[b'quarto'].decode()
-                }
-            })
-            f = open('cadastros.json', 'w')
-            f.write(ujson.dumps(l))
-            f.close()
-        except:
-            machine.reset()
+    except:
+        pass
+
+    l.update({
+        identificacao: {
+            'nome': d[b'nome'].decode(),
+            'quarto': int(d[b'quarto'].decode())
+        }
+    })
+    f = open('cadastros.json', 'w')
+    f.write(ujson.dumps(l))
+    f.close()
     return d
