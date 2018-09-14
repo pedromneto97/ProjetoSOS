@@ -26,6 +26,7 @@ class Device:
         self.p5 = Pin(5, Pin.OUT)  # BUZZER
 
         # Botão
+        self.alimentacao = Timer(2)
         self.p15 = Pin(15, Pin.IN, Pin.PULL_DOWN)
         self.p15.irq(trigger=Pin.IRQ_RISING, handler=self.button)
 
@@ -33,7 +34,6 @@ class Device:
         self.z = ADC(Pin(32))
         self.y = ADC(Pin(35))
         self.x = ADC(Pin(34))
-        self.acelerometro()
 
         # TODO-me testar a leitura da bateria
         # Pino da bateria
@@ -47,14 +47,15 @@ class Device:
 
         self.t_reenvio = Timer(3)
 
-        self.t_rede = Timer(2)
-        self.t_rede.init(period=300000, mode=Timer.PERIODIC, callback=reset())
+        self.t_rede = Timer(-1)
+        self.t_rede.init(period=300000, mode=Timer.PERIODIC, callback=self.reiniciar)
+        self.t_rede.deinit()
 
         self.c = Connect()
         self.connection = self.c.start()
         self.client = Client(self.connection)
 
-        self.t_rede.deinit()
+        self.acelerometro()
 
     def acelerometro(self):
         self.x.width(ADC.WIDTH_10BIT)
@@ -77,17 +78,20 @@ class Device:
         self.p2.value(0)
         self.p5.value(0)
 
+    def reiniciar(self, t):
+        reset()
+
     # Função que verifica o acelerometro
     def verifica(self, p):
         xval = (self.x.read() - 464) / 102
         yval = (self.y.read() - 463) / 104
         zval = (self.z.read() - 475) / 99.3
-        if sqrt(pow(xval, 2) + pow(yval, 2) + pow(zval, 2)) > 2:
+        if sqrt(pow(xval, 2) + pow(yval, 2) + pow(zval, 2)) > 3:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
-            hora = (RTC().datetime()[4], RTC().datetime()[5])
             try:
+                hora = (RTC().datetime()[4], RTC().datetime()[5])
                 self.client.client(mac=self.hex_id, tipo=Tipo.EMERGENCIA, hora=hora)
             except:
                 self.avisa()
@@ -119,8 +123,8 @@ class Device:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
-            hora = (RTC().datetime()[4], RTC().datetime()[5])
             try:
+                hora = (RTC().datetime()[4], RTC().datetime()[5])
                 self.client.client(mac=self.hex_id, tipo=Tipo.AJUDA, hora=hora)
             except:
                 self.avisa()
@@ -130,10 +134,9 @@ class Device:
                     self.t_reenvio.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reenviar)
                 except:
                     pass
-            t = Timer(-1)
-            t.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
+            self.alimentacao.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
         except:
-            reset()
+            print("Erro")
 
     def bateria(self, t):
         tensao = 2 * self.p33.read() * 3.6 / 4096
@@ -141,8 +144,8 @@ class Device:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
-            hora = (RTC().datetime()[4], RTC().datetime()[5])
             try:
+                hora = (RTC().datetime()[4], RTC().datetime()[5])
                 self.client.client(mac=self.hex_id, tipo=Tipo.BATERIA, hora=hora)
             except:
                 self.avisa()
@@ -155,6 +158,8 @@ class Device:
 
     def reenviar(self, t):
         try:
+            print("Reenviando")
+            t.deinit()
             f = open('estado.json', 'r')
             l = ujson.loads(f.read())
             f.close()
@@ -162,7 +167,6 @@ class Device:
                 try:
                     self.client.client(mac=self.hex_id, tipo=valor['tipo'], hora=(valor['horas'], valor['minutos']),
                                        chamadas=valor['chamadas'])
-                    t.deinit()
                 except:
                     pass
         except:
