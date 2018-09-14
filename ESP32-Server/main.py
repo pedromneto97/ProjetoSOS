@@ -2,17 +2,17 @@
 
 from os import remove
 
-import cadastro
 import ntptime
 import ujson
 import utime
+from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC, SOFT_RESET, reset_cause
+
+import cadastro
 from connect import Connect
 from logo import escreve_SOS
-from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC
+from server import Server
 from ssd1306 import SSD1306_I2C
 from tipo import Tipo
-
-from server import Server
 
 
 class Device:
@@ -20,7 +20,6 @@ class Device:
         id = unique_id()
         self.hex_id = b'{:02x}{:02x}{:02x}{:02x}'.format(id[0], id[1], id[2], id[3])
 
-        # TODO-me trabalhar o cadastro do novo dispositivo
         # Listas
         self.lista = {
             Tipo.EMERGENCIA: [],
@@ -48,6 +47,9 @@ class Device:
         self.p15 = Pin(15, Pin.OUT)
         self.p15.value(1)
 
+        # Botão de remover
+        self.p4 = Pin(4, Pin.IN, Pin.PULL_DOWN)
+
         # Timer que ativa o botão depois de 400ms
         self.t = Timer(0)
         self.t.init(period=400, mode=Timer.PERIODIC, callback=self.ativa)
@@ -57,14 +59,6 @@ class Device:
         self.oled.fill(0)
         escreve_SOS(self.oled)
         self.oled.show()
-
-        # Botão de próximo
-        self.p2 = Pin(2, Pin.IN, Pin.PULL_DOWN)
-        self.p2.irq(trigger=Pin.IRQ_RISING, handler=self.proximo)
-
-        # Botão de remover
-        self.p4 = Pin(4, Pin.IN, Pin.PULL_DOWN)
-        self.p4.irq(trigger=Pin.IRQ_RISING, handler=self.remove)
 
         # TODO-me testar a leitura da bateria
         self.bateria_timer = Timer(1)
@@ -77,31 +71,30 @@ class Device:
         self.p19.value(0)
 
         self.t_boot = Timer(2)
-        self.t_boot.init(period=300000, mode=Timer.PERIODIC, callback=self.reiniciar)
+        self.t_boot.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reiniciar)
         self.c = Connect()
+        # TODO-me testar não reiniciar o esp caso o cadastro de certo
         self.connection = self.c.start()
 
         self.t_boot.deinit()
 
         self.server = Server(self.connection)
 
-        self.tempo_boot = True
-        self.oled.fill(0)
-        self.oled.text("CADASTRO", 0, 32)
-        self.oled.show()
+        self.carregar_cadastros()
+
         # TODO-me testar cadastro
-        while self.tempo_boot:
-            self.t_boot.init(period=100000, mode=Timer.ONE_SHOT, callback=
-            break)
+        while self.p4.value() == 0 and reset_cause() != SOFT_RESET:
+            self.t_boot.init(period=30000, mode=Timer.ONE_SHOT, callback=self.reiniciar)
+            self.oled.fill(0)
+            self.oled.text("CADASTRO", 0, 32)
+            self.oled.show()
             mac = self.server.servidor(device=self, cadastro=True)
-            self.t_boot.deinit()
+            self.connection.active(False)
             self.oled.fill(0)
             self.oled.text("ID:", 0, 20)
             self.oled.text(mac, 0, 32)
             self.oled.show()
-            self.t_boot.init(period=120000, mode=Timer.ONE_SHOT, callback=self.fim_cadastro)
             dados = cadastro.start(mac)
-            self.t_boot.deinit()
             self.escreve_oled(nome=dados[b'nome'].decode(), quarto=dados[b'quarto'].decode())
             self.cadastrados.update({
                 mac: {
@@ -109,8 +102,19 @@ class Device:
                     'quarto': dados[b'quarto'].decode()
                 }
             })
+            self.connection = self.c.start()
+            utime.sleep(1)
+        try:
+            self.t_boot.deinit
+        except:
+            pass
+        # Botão de próximo
+        self.p2 = Pin(2, Pin.IN, Pin.PULL_DOWN)
+        self.p2.irq(trigger=Pin.IRQ_RISING, handler=self.proximo)
 
-        # TODO-me testar timer de inatividade
+        # IRQ de remover
+        self.p4.irq(trigger=Pin.IRQ_RISING, handler=self.remove)
+
         self.inatividade = Timer(2)
         self.inatividade.init(period=300000, mode=Timer.ONE_SHOT, callback=self.inativo)
 
@@ -122,8 +126,17 @@ class Device:
     def reiniciar(self, t):
         reset()
 
-    def fim_cadastro(self, t):
-        self.t_boot = False
+    def carregar_cadastros(self):
+        # Try para carregar todos os cadastros
+        try:
+            f = open('cadastros.json', 'r')
+            self.cadastrados.update(ujson.loads(f.read()))
+            f.close()
+        except:
+            self.oled.fill(0)
+            self.oled.text("Nao ha dados", 0, 32)
+            self.oled.text("cadastrados", 0, 40)
+            self.oled.show()
 
     def proximo(self, p=None, flag=True):
         try:
@@ -134,6 +147,7 @@ class Device:
                 else:
                     enable_irq(irq)
                     return
+            enable_irq(irq)
             self.reinicia_inativo()
             # TODO-me Verificar como está sendo disponibilizado no visor
             contador = 0
@@ -177,7 +191,6 @@ class Device:
                 elif contador > 1:
                     self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
                                       multiplos=True)
-            enable_irq(irq)
         except:
             if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
                     self.lista[Tipo.BATERIA]) > 0:
@@ -197,6 +210,7 @@ class Device:
             else:
                 enable_irq(irq)
                 return
+            enable_irq(irq)
             self.reinicia_inativo()
             # TODO-me Verificar como está sendo disponibilizado no visor
             self.oled.fill(0)
@@ -207,14 +221,15 @@ class Device:
             chamadas = None
             hora = None
             minuto = None
-            if len(self.lista['emergencia']) == 0 and len(self.lista['ajuda']) == 0 and len(self.lista['bateria']) == 0:
+            if len(self.lista[Tipo.EMERGENCIA]) == 0 and len(self.lista[Tipo.AJUDA]) == 0 and len(
+                    self.lista[Tipo.BATERIA]) == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
             elif len(self.lista[self.iterador['tipo']]) > 1:
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
                 if len(self.lista[self.iterador['tipo']]) == self.iterador['iterador']:
                     self.iterador = {
-                        'tipo': 'emergencia',
+                        'tipo': Tipo.EMERGENCIA,
                         'iterador': 0
                     }
                 tipo = self.iterador['tipo']
@@ -226,7 +241,7 @@ class Device:
                 for chave, valor in self.lista.items():
                     contador += len(valor)
             else:
-                del self.lista[self.iterador['tipo']]
+                del self.lista[self.iterador['tipo']][self.iterador['iterador']]
                 for chave, valor in self.lista.items():
                     if chave == self.iterador['tipo']:
                         continue
@@ -252,7 +267,6 @@ class Device:
             elif contador > 1:
                 self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
                                   multiplos=True)
-            enable_irq(irq)
         except:
             if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
                     self.lista[Tipo.BATERIA]) > 0:
@@ -296,7 +310,7 @@ class Device:
             if not (quarto is None):
                 self.oled.text("Quarto: " + str(quarto), 0, 20)
             if not (hora is None) or not (minuto is None):
-                self.oled.text("Horario: " + str(hora) + ':' + str(minuto).zfill(2), 0, 30)
+                self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), 0, 30)
             if not (chamadas is None):
                 self.oled.text(str(chamadas), 110, 55)
             if multiplos:
@@ -340,21 +354,13 @@ def main():
                 device.oled.text("Conectado a rede", 0, 32)
                 device.oled.show()
                 boot = False
-                # Try para carregar todos os cadastros
-                try:
-                    f = open('cadastros.json', 'r')
-                    device.cadastrados.update(ujson.loads(f.read()))
-                    f.close()
-                except:
-                    device.oled.fill(0)
-                    device.oled.text("Nao ha dados", 0, 32)
-                    device.oled.text("cadastrados", 0, 40)
-                    device.oled.show()
-
                 # Try para verificar se existe um arquivo com o estado da última vez
                 try:
                     f = open('estado.json', 'r')
-                    device.lista = ujson.loads(f.read())
+                    l = ujson.loads(f.read())
+                    device.lista[Tipo.EMERGENCIA] = l[Tipo.EMERGENCIA]
+                    device.lista[Tipo.AJUDA] = l[Tipo.AJUDA]
+                    device.lista[Tipo.BATERIA] = l[Tipo.BATERIA]
                     f.close()
                     device.proximo(flag=False)
                     remove("estado.json")
