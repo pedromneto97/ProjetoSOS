@@ -71,6 +71,8 @@ class Server:
                             if item['id'] == l['id']:
                                 item['chamadas'] += 1
                                 l['chamadas'] = item['chamadas']
+                                l['horas'] = item['horas']
+                                l['minutos'] = item['minutos']
                                 flag = False
                                 break
                         if flag:
