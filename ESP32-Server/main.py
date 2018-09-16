@@ -157,25 +157,23 @@ class Device:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
             elif len(self.lista[self.iterador['tipo']]) >= self.iterador['iterador'] + 1:
-                # Se for o último, verifica do começo
-                if self.iterador['tipo'] == Tipo.BATERIA:
-                    for chave, valor in self.lista.items():
-                        if len(valor) > 0:
-                            self.iterador['tipo'] = chave
-                            break
-                else:
-                    # Verifica para cada tipo, para evitar problemas se o iterador tivesse no meio
-                    # então foi feito caso a caso FOcando na prioridade
-                    if self.iterador['tipo'] == Tipo.EMERGENCIA:
-                        if len(self.lista[Tipo.AJUDA]) > 0:
-                            self.iterador['tipo'] = Tipo.AJUDA
-                        elif len(self.lista[Tipo.BATERIA]) > 0:
-                            self.iterador['tipo'] = Tipo.BATERIA
-                    elif self.iterador['tipo'] == Tipo.AJUDA:
-                        if len(self.lista[Tipo.BATERIA]) > 0:
-                            self.iterador['tipo'] = Tipo.BATERIA
-                        elif len(self.lista[Tipo.EMERGENCIA]) > 0:
-                            self.iterador['tipo'] = Tipo.EMERGENCIA
+                # Verifica para cada tipo, para evitar problemas se o iterador tivesse no meio
+                # então foi feito caso a caso FOcando na prioridade
+                if self.iterador['tipo'] == Tipo.EMERGENCIA:
+                    if len(self.lista[Tipo.AJUDA]) > 0:
+                        self.iterador['tipo'] = Tipo.AJUDA
+                    elif len(self.lista[Tipo.BATERIA]) > 0:
+                        self.iterador['tipo'] = Tipo.BATERIA
+                elif self.iterador['tipo'] == Tipo.AJUDA:
+                    if len(self.lista[Tipo.BATERIA]) > 0:
+                        self.iterador['tipo'] = Tipo.BATERIA
+                    elif len(self.lista[Tipo.EMERGENCIA]) > 0:
+                        self.iterador['tipo'] = Tipo.EMERGENCIA
+                elif self.iterador['tipo'] == Tipo.BATERIA:
+                    if len(self.lista[Tipo.EMERGENCIA]) > 0:
+                        self.iterador['tipo'] = Tipo.EMERGENCIA
+                    elif len(self.lista[Tipo.AJUDA]) > 0:
+                        self.iterador['tipo'] = Tipo.AJUDA
                 self.iterador['iterador'] = 0
             else:
                 self.iterador['iterador'] += 1
