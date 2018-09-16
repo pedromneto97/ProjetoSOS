@@ -5,10 +5,11 @@ from math import pow, sqrt
 from time import sleep, sleep_ms, localtime
 
 import ujson
-from client import Client
-from connect import Connect
 from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, idle, RTC
 from ntptime import settime
+
+from client import Client
+from connect import Connect
 from tipo import Tipo
 
 
@@ -25,6 +26,9 @@ class Device:
         self.p2 = Pin(2, Pin.OUT)  # LED
         self.p5 = Pin(5, Pin.OUT)  # BUZZER
 
+        # Deixa pré-definido para não reenviar, caso se conecte a rede, ativa o reenvio
+        self.reenvio = True
+
         # Botão
         self.alimentacao = Timer(2)
         self.p15 = Pin(15, Pin.IN, Pin.PULL_DOWN)
@@ -35,27 +39,28 @@ class Device:
         self.y = ADC(Pin(35))
         self.x = ADC(Pin(34))
 
-        # TODO-me testar a leitura da bateria
         # Pino da bateria
         self.p33 = ADC(Pin(33))
-        self.p33.width(ADC.WIDTH_12BIT)
+        self.p33.width(ADC.WIDTH_10BIT)
         self.p33.atten(ADC.ATTN_11DB)
 
         # Timer da bateria
         self.bateria_timer = Timer(1)
         self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
 
-        self.t_reenvio = Timer(3)
+        self.acelerometro()
 
         self.t_rede = Timer(-1)
         self.t_rede.init(period=300000, mode=Timer.PERIODIC, callback=self.reiniciar)
-        self.t_rede.deinit()
 
         self.c = Connect()
         self.connection = self.c.start()
         self.client = Client(self.connection)
 
-        self.acelerometro()
+        self.t_rede.deinit()
+
+        self.t_reenvio = Timer(3)
+        self.reenvio = False
 
     def acelerometro(self):
         self.x.width(ADC.WIDTH_10BIT)
@@ -67,8 +72,10 @@ class Device:
         self.z.width(ADC.WIDTH_10BIT)
         self.z.atten(ADC.ATTN_11DB)
 
+        self.anterior = 0
+
         self.timer = Timer(0)
-        self.timer.init(period=250, mode=Timer.PERIODIC, callback=self.verifica)
+        self.timer.init(period=100, mode=Timer.PERIODIC, callback=self.verifica)
 
     def avisa(self):
         self.p2.value(1)
@@ -86,7 +93,11 @@ class Device:
         xval = (self.x.read() - 464) / 102
         yval = (self.y.read() - 463) / 104
         zval = (self.z.read() - 475) / 99.3
-        if sqrt(pow(xval, 2) + pow(yval, 2) + pow(zval, 2)) > 3:
+        val = sqrt(pow(xval, 2) + pow(yval, 2) + pow(zval, 2))
+        del xval
+        del yval
+        del zval
+        if val > 3.5 or abs(val - self.anterior) > 1.3:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
@@ -98,9 +109,13 @@ class Device:
                 sleep(7)
                 self.desliga_aviso()
                 try:
-                    self.t_reenvio.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reenviar)
+                    if not self.reenvio:
+                        self.t_reenvio.init(period=300000, mode=Timer.PERIODIC, callback=self.reenviar)
+                        self.reenvio = True
                 except:
                     pass
+        self.anterior = val
+        del val
 
     # Alimenta o botão novamente
     def ativa(self, p):
@@ -131,15 +146,17 @@ class Device:
                 sleep(7)
                 self.desliga_aviso()
                 try:
-                    self.t_reenvio.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reenviar)
+                    if not self.reenvio:
+                        self.t_reenvio.init(period=300000, mode=Timer.PERIODIC, callback=self.reenviar)
+                        self.reenvio = True
                 except:
                     pass
             self.alimentacao.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
         except:
-            print("Erro")
+            reset()
 
     def bateria(self, t):
-        tensao = 2 * self.p33.read() * 3.6 / 4096
+        tensao = 2 * self.p33.read() * 3.3 / 1023
         if tensao < 3:
             self.avisa()
             sleep(2)
@@ -152,14 +169,15 @@ class Device:
                 sleep(7)
                 self.desliga_aviso()
                 try:
-                    self.t_reenvio.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reenviar)
+                    if not self.reenvio:
+                        self.t_reenvio.init(period=300000, mode=Timer.PERIODIC, callback=self.reenviar)
+                        self.reenvio = True
                 except:
                     pass
 
     def reenviar(self, t):
         try:
             print("Reenviando")
-            t.deinit()
             f = open('estado.json', 'r')
             l = ujson.loads(f.read())
             f.close()
@@ -168,7 +186,9 @@ class Device:
                     self.client.client(mac=self.hex_id, tipo=valor['tipo'], hora=(valor['horas'], valor['minutos']),
                                        chamadas=valor['chamadas'])
                 except:
-                    pass
+                    raise
+            t.deinit()
+            self.reenvio = False
         except:
             print("Arquivo inexistente")
 
@@ -188,7 +208,6 @@ def main():
                 boot = True
         else:
             if boot:
-                # TODO-me Testar timer para verificar caso caia a rede, se reconectar
                 try:
                     device.t_rede.deinit()
                 except:
