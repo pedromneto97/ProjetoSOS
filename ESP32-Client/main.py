@@ -2,6 +2,7 @@
 
 from gc import collect
 from math import pow, sqrt
+from os import remove, listdir
 from time import sleep, sleep_ms, localtime
 
 import ujson
@@ -187,8 +188,15 @@ class Device:
                                        chamadas=valor['chamadas'])
                 except:
                     raise
-            t.deinit()
+            try:
+                t.deinit()
+            except:
+                pass
             self.reenvio = False
+            try:
+                remove('estado.json', 'r')
+            except:
+                print("Erro ao remover arquivo")
         except:
             print("Arquivo inexistente")
 
@@ -221,6 +229,8 @@ def main():
                 device.avisa()
                 sleep_ms(700)
                 device.desliga_aviso()
+                if 'estado.json' in listdir():
+                    device.reenviar(device.t_reenvio)
                 boot = False
             collect()
             idle()
