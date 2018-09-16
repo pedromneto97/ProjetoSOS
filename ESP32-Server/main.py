@@ -2,14 +2,13 @@
 
 from os import remove
 
+import cadastro
 import ntptime
 import ujson
 import utime
-from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC, SOFT_RESET, reset_cause
-
-import cadastro
 from connect import Connect
 from logo import escreve_SOS
+from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC, SOFT_RESET, reset_cause
 from server import Server
 from ssd1306 import SSD1306_I2C
 from tipo import Tipo
@@ -149,7 +148,6 @@ class Device:
                     return
             enable_irq(irq)
             self.reinicia_inativo()
-            # TODO-me Verificar como está sendo disponibilizado no visor
             contador = 0
             self.oled.fill(0)
             for chave, valor in self.lista.items():
@@ -212,7 +210,6 @@ class Device:
                 return
             enable_irq(irq)
             self.reinicia_inativo()
-            # TODO-me Verificar como está sendo disponibilizado no visor
             self.oled.fill(0)
             contador = 0
             tipo = None

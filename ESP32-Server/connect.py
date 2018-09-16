@@ -48,6 +48,7 @@ class Connect:
             self.sta_if.active(False)
             print('Rede não conectada')
             d = dnsquery.start()
+            self.sta_if.active(True)
             self.connection(d[b's'].decode(), d[b'p'].decode())
             if self.sta_if.isconnected():                
                 self.config[self.lconf] = [ubinascii.hexlify(ubinascii.b2a_base64(d[b's'])[:-1]),
@@ -55,7 +56,6 @@ class Connect:
                 f = open('config.json', 'w')  
                 f.write(ujson.dumps(self.config))
                 f.close()
-                machine.reset()
             else:  
                 time.sleep(1)
                 machine.reset()
