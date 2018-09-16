@@ -149,7 +149,7 @@ def start():
                     configured = True
                 except:
                     d = {}
-
+            # Todo-me deletar transmissor cadastrado
             client_stream.write(CONTENT.replace('---lines---', p.find_ssid()))
             client_stream.close()
         except:
