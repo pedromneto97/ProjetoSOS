@@ -2,13 +2,14 @@
 
 from os import remove
 
-import cadastro
 import ntptime
 import ujson
 import utime
+from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC, SOFT_RESET, reset_cause
+
+import cadastro
 from connect import Connect
 from logo import escreve_SOS
-from machine import Pin, RTC, unique_id, I2C, disable_irq, enable_irq, Timer, reset, ADC, SOFT_RESET, reset_cause
 from server import Server
 from ssd1306 import SSD1306_I2C
 from tipo import Tipo
@@ -163,7 +164,8 @@ class Device:
                             self.iterador['tipo'] = chave
                             break
                 else:
-                    # Verifica para cada tipo, poderia dar problema se o iterador tivesse no meio então foi feito a mão
+                    # Verifica para cada tipo, para evitar problemas se o iterador tivesse no meio
+                    # então foi feito caso a caso FOcando na prioridade
                     if self.iterador['tipo'] == Tipo.EMERGENCIA:
                         if len(self.lista[Tipo.AJUDA]) > 0:
                             self.iterador['tipo'] = Tipo.AJUDA
@@ -218,17 +220,31 @@ class Device:
             chamadas = None
             hora = None
             minuto = None
+            # Caso não tenha nada na lista
             if len(self.lista[Tipo.EMERGENCIA]) == 0 and len(self.lista[Tipo.AJUDA]) == 0 and len(
                     self.lista[Tipo.BATERIA]) == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
+            # Caso na minha lista atual tenha mais de 2 elementos
             elif len(self.lista[self.iterador['tipo']]) > 1:
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
+                # Caso for o último elemento da lista, muda pra próxima lista com a prioridade
                 if len(self.lista[self.iterador['tipo']]) == self.iterador['iterador']:
-                    self.iterador = {
-                        'tipo': Tipo.EMERGENCIA,
-                        'iterador': 0
-                    }
+                    if len(self.lista[Tipo.EMERGENCIA]) > 0:
+                        self.iterador = {
+                            'tipo': Tipo.EMERGENCIA,
+                            'iterador': 0
+                        }
+                    elif len(self.lista[Tipo.AJUDA]) > 0:
+                        self.iterador = {
+                            'tipo': Tipo.AJUDA,
+                            'iterador': 0
+                        }
+                    elif len(self.lista[Tipo.BATERIA]) > 0:
+                        self.iterador = {
+                            'tipo': Tipo.BATERIA,
+                            'iterador': 0
+                        }
                 tipo = self.iterador['tipo']
                 nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
                 quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
@@ -244,8 +260,8 @@ class Device:
                         continue
                     if len(valor) > 0:
                         contador += len(valor)
-                        if contador > 0:
-                            break
+                        print(chave)
+                        print(valor)
                         self.iterador = {
                             'tipo': chave,
                             'iterador': 0
@@ -256,6 +272,7 @@ class Device:
                         hora = valor[0]['horas']
                         minuto = valor[0]['minutos']
                         chamadas = valor[0]['chamadas']
+                        break
             if contador == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
@@ -280,7 +297,7 @@ class Device:
             self.p15.value(1)
 
     def bateria(self, t):
-        tensao = 2 * self.p33.read() * 3.6 / 4096
+        tensao = 2 * self.p33.read() * 3.3 / 4096
         if tensao < 3:
             self.avisa()
             utime.sleep(1)
