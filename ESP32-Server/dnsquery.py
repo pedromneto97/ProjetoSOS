@@ -158,5 +158,5 @@ def start():
 
     udps.close()
     s.close()
-
+    ap_if.active(False)
     return d
