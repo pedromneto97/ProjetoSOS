@@ -328,6 +328,7 @@ class Device:
                 contador = False
             self.escreve_oled(tipo=Tipo.BATERIA, nome=self.cadastrados[self.hex_id]['nome'], hora=hora, minuto=minuto,
                               chamadas=chamadas, multiplos=contador)
+            self.reinicia_inativo()
             self.desliga_aviso()
 
     def escreve_oled(self, tipo=None, nome=None, quarto=None, hora=None, minuto=None, chamadas=None, scroll=False,
