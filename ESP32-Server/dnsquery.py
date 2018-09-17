@@ -4,6 +4,7 @@ import socket
 
 import machine
 import network
+import ujson
 
 CONTENT = """\
 HTTP/1.0 200 OK
@@ -40,12 +41,19 @@ HTTP/1.0 200 OK
                 <br/>
                 <button type="submit">Salvar</button>
             </form>
-            <br/><div class="c"><a href="/wifi">Scan</a></div>
+            <br/>
+            <div class="c"><a href="/wifi">Scan</a></div>
+            <br/>
+            <form method="get" action="removercad">
+            <select id='mac' name='mac'>
+            ---content---
+            </select>
+            <button type="submit">Remover cadastro</button>
+            </form>
         </div>
     </body>
 </html>
 """
-
 
 
 class DNSQuery:
@@ -118,7 +126,13 @@ def start():
     s.listen(1)
     s.settimeout(2)
     # print("Web Server: Listening http://{}:80/".format(ip))
-
+    cadastrados = {}
+    try:
+        f = open('cadastros.json', 'r')
+        cadastrados.update(ujson.loads(f.read()))
+        f.close()
+    except:
+        pass
     configured = False
     d = {}
     # DNS Loop
@@ -140,7 +154,6 @@ def start():
                 h = client_stream.readline()
                 if h == b"" or h == b"\r\n" or h == None:
                     break
-
             request_url = req[5:13]
             if request_url == b'wifisave':
                 params = req[14:-11]
@@ -150,7 +163,22 @@ def start():
                 except:
                     d = {}
             # Todo-me deletar transmissor cadastrado
-            client_stream.write(CONTENT.replace('---lines---', p.find_ssid()))
+            request_url = req[5:15]
+            if request_url == b'removercad':
+                params = req[16:-11]
+                try:
+                    v = {key: value for (key, value) in [params.replace(b'+', b' ').split(b'=')]}
+                    del cadastrados[v[b'mac'].decode()]
+                    f = open('cadastros.json', 'w')
+                    f.write(ujson.dumps(cadastrados))
+                    f.close()
+                except:
+                    pass
+            string = ""
+            for chave, valor in cadastrados.items():
+                string += '<option value="' + str(chave) + '">' + valor['nome'] + ' Quarto ' + str(
+                    valor['quarto']) + '</option>'
+            client_stream.write(CONTENT.replace('---lines---', p.find_ssid()).replace('---content---', string))
             client_stream.close()
         except:
             # Just wait timeout for web
