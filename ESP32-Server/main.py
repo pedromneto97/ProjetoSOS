@@ -79,7 +79,6 @@ class Device:
 
         self.carregar_cadastros()
 
-        # TODO-me testar cadastro
         while self.p4.value() == 0 and reset_cause() != SOFT_RESET:
             self.t_boot.init(period=120000, mode=Timer.ONE_SHOT, callback=self.reiniciar)
             self.oled.fill(0)
