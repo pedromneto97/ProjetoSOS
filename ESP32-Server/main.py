@@ -30,7 +30,7 @@ class Device:
             'tipo': Tipo.EMERGENCIA,
             'iterador': -1
         }
-        # TODO-me testar a leitura do arquivo de cadastrados
+
         self.cadastrados = {
             self.hex_id: {
                 'nome': 'Transmissor',
@@ -40,7 +40,7 @@ class Device:
 
         # Pino da bateria
         self.p33 = ADC(Pin(33))
-        self.p33.width(ADC.WIDTH_12BIT)
+        self.p33.width(ADC.WIDTH_10BIT)
         self.p33.atten(ADC.ATTN_11DB)
 
         # Pino de alimentação
@@ -60,7 +60,6 @@ class Device:
         escreve_SOS(self.oled)
         self.oled.show()
 
-        # TODO-me testar a leitura da bateria
         self.bateria_timer = Timer(1)
         self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
 
@@ -73,9 +72,7 @@ class Device:
         self.t_boot = Timer(2)
         self.t_boot.init(period=300000, mode=Timer.ONE_SHOT, callback=self.reiniciar)
         self.c = Connect()
-        # TODO-me testar não reiniciar o esp caso o cadastro de certo
         self.connection = self.c.start()
-
         self.t_boot.deinit()
 
         self.server = Server(self.connection)
@@ -84,7 +81,7 @@ class Device:
 
         # TODO-me testar cadastro
         while self.p4.value() == 0 and reset_cause() != SOFT_RESET:
-            self.t_boot.init(period=30000, mode=Timer.ONE_SHOT, callback=self.reiniciar)
+            self.t_boot.init(period=120000, mode=Timer.ONE_SHOT, callback=self.reiniciar)
             self.oled.fill(0)
             self.oled.text("CADASTRO", 0, 32)
             self.oled.show()
@@ -258,8 +255,6 @@ class Device:
                         continue
                     if len(valor) > 0:
                         contador += len(valor)
-                        print(chave)
-                        print(valor)
                         self.iterador = {
                             'tipo': chave,
                             'iterador': 0
@@ -295,20 +290,46 @@ class Device:
             self.p15.value(1)
 
     def bateria(self, t):
-        tensao = 2 * self.p33.read() * 3.3 / 4096
+        tensao = 2 * self.p33.read() * 3.3 / 1023
         if tensao < 3:
             self.avisa()
             utime.sleep(1)
+            hora = 0
+            minuto = 0
+            chamadas = 0
+            flag = True
             for item in self.lista[Tipo.BATERIA]:
                 if item['id'] == self.hex_id:
                     item['chamadas'] += 1
-                else:
-                    self.lista[Tipo.BATERIA].append({
-                        'id': self.hex_id,
-                        'hora': RTC().datetime()[4],
-                        'minuto': RTC().datetime()[5],
-                        'chamadas': 1
-                    })
+                    chamadas = item['chamadas']
+                    hora = item['horas']
+                    minuto = item['minutos']
+                    flag = False
+            if flag:
+                hora = RTC().datetime()[4]
+                minuto = RTC().datetime()[5]
+                chamadas = 1
+                self.lista[Tipo.BATERIA].append({
+                    'id': self.hex_id,
+                    'horas': hora,
+                    'minutos': minuto,
+                    'chamadas': 1
+                })
+            i = next(i for i, valor in enumerate(self.lista[Tipo.BATERIA]) if valor['id'] == self.hex_id)
+            self.iterador = {
+                'tipo': Tipo.BATERIA,
+                'iterador': i
+            }
+            contador = 0
+            for chave, valor in self.lista.items():
+                if len(valor) > 0:
+                    contador += len(valor)
+            if contador > 1:
+                contador = True
+            else:
+                contador = False
+            self.escreve_oled(tipo=Tipo.BATERIA, nome=self.cadastrados[self.hex_id]['nome'], hora=hora, minuto=minuto,
+                              chamadas=chamadas, multiplos=contador)
             self.desliga_aviso()
 
     def escreve_oled(self, tipo=None, nome=None, quarto=None, hora=None, minuto=None, chamadas=None, scroll=False,
