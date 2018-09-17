@@ -33,7 +33,7 @@ class Device:
 
         self.cadastrados = {
             self.hex_id: {
-                'nome': 'Transmissor',
+                'nome': 'Receptor',
                 'quarto': None
             }
         }
