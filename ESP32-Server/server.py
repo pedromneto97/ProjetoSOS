@@ -1,9 +1,9 @@
 import socket
 from gc import collect
+from time import sleep_ms
 
 import ujson
 from machine import reset
-
 from tipo import Tipo
 
 
@@ -102,6 +102,7 @@ class Server:
                                         minuto=l['minutos'],
                                         chamadas=l['chamadas'], multiplos=contador > 1)
                     device.oled.show()
+                    sleep_ms(300)
                     device.desliga_aviso()
                     collect()
                     conn.close()  # Fecha a conexão
