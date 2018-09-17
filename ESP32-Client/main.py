@@ -6,11 +6,10 @@ from os import remove, listdir
 from time import sleep, sleep_ms, localtime
 
 import ujson
-from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, idle, RTC
-from ntptime import settime
-
 from client import Client
 from connect import Connect
+from machine import Pin, ADC, unique_id, reset, Timer, disable_irq, enable_irq, idle, RTC
+from ntptime import settime
 from tipo import Tipo
 
 
@@ -47,7 +46,7 @@ class Device:
 
         # Timer da bateria
         self.bateria_timer = Timer(1)
-        self.bateria_timer.init(period=3600000, mode=Timer.PERIODIC, callback=self.bateria)
+        self.bateria_timer.init(period=1800000, mode=Timer.PERIODIC, callback=self.bateria)
 
         self.acelerometro()
 
