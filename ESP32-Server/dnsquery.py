@@ -162,7 +162,6 @@ def start():
                     configured = True
                 except:
                     d = {}
-            # Todo-me deletar transmissor cadastrado
             request_url = req[5:15]
             if request_url == b'removercad':
                 params = req[16:-11]
