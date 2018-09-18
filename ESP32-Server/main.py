@@ -251,7 +251,9 @@ class Device:
                 for chave, valor in self.lista.items():
                     if chave == self.iterador['tipo']:
                         continue
-                    if len(valor) > 0:
+                    if contador > 0 and len(valor) > 0:
+                        contador += len(valor)
+                    elif len(valor) > 0:
                         contador += len(valor)
                         self.iterador = {
                             'tipo': chave,
@@ -263,7 +265,6 @@ class Device:
                         hora = valor[0]['horas']
                         minuto = valor[0]['minutos']
                         chamadas = valor[0]['chamadas']
-                        break
             if contador == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
