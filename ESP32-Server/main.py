@@ -151,7 +151,7 @@ class Device:
             if contador == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
-            elif len(self.lista[self.iterador['tipo']]) >= self.iterador['iterador'] + 1:
+            elif len(self.lista[self.iterador['tipo']]) <= self.iterador['iterador'] + 1:
                 # Verifica para cada tipo, para evitar problemas se o iterador tivesse no meio
                 # então foi feito caso a caso FOcando na prioridade
                 if self.iterador['tipo'] == Tipo.EMERGENCIA:
