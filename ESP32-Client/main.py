@@ -134,6 +134,7 @@ class Device:
             else:
                 enable_irq(irq)
                 return
+            self.alimentacao.init(period=17000, mode=Timer.ONE_SHOT, callback=self.ativa)
             enable_irq(irq)
             self.avisa()
             sleep(2)
@@ -151,7 +152,6 @@ class Device:
                         self.reenvio = True
                 except:
                     pass
-            self.alimentacao.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
         except:
             reset()
 
@@ -193,7 +193,7 @@ class Device:
                 pass
             self.reenvio = False
             try:
-                remove('estado.json', 'r')
+                remove('estado.json')
             except:
                 print("Erro ao remover arquivo")
         except:
