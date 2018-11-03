@@ -222,6 +222,8 @@ def main():
                 try:
                     settime()
                     l = localtime()
+                    if l[3] < 3:
+                        l[3] = 21 + l[3]
                     RTC().datetime(l[0:3] + (0,) + (l[3] - 3,) + l[4:6] + (0,))
                 except:
                     pass
