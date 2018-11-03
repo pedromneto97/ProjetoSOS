@@ -37,32 +37,6 @@ class Client:
                 tcp.close()  # Fecha a conexão
             except:
                 print("Não foi possível se conectar com o servidor")
-                try:
-                    f = open('estado.json', 'r')
-                    l = ujson.loads(f.read())
-                    f.close()
-                except:
-                    l = {}
-                flag = True
-                for item in l.values():
-                    print(item)
-                    if item['tipo'] == tipo:
-                        print(item['chamadas'])
-                        flag = False
-                        item['chamadas'] += 1
-                        break
-                if flag:
-                    l.update({len(l): {
-                        "tipo": tipo,
-                        "chamadas": chamadas,
-                        "horas": hora[0],
-                        "minutos": hora[1]
-                    }})
-                f = open('estado.json', 'w')
-                f.write(ujson.dumps(l))
-                f.close()
-                del l
-                del flag
                 raise
 
     def endereco(self):
