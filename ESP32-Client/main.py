@@ -101,13 +101,18 @@ class Device:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
+            hora = [0, 0]
             try:
                 hora = (RTC().datetime()[4], RTC().datetime()[5])
+            except:
+                pass
+            try:
                 self.client.client(mac=self.hex_id, tipo=Tipo.EMERGENCIA, hora=hora)
             except:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
+                self.salva_reenvio(Tipo.EMERGENCIA, hora)
                 try:
                     if not self.reenvio:
                         self.t_reenvio.init(period=300000, mode=Timer.PERIODIC, callback=self.reenviar)
@@ -134,18 +139,22 @@ class Device:
             else:
                 enable_irq(irq)
                 return
-            self.alimentacao.init(period=17000, mode=Timer.ONE_SHOT, callback=self.ativa)
             enable_irq(irq)
             self.avisa()
             sleep(2)
             self.desliga_aviso()
+            hora = [0, 0]
             try:
                 hora = (RTC().datetime()[4], RTC().datetime()[5])
+            except:
+                pass
+            try:
                 self.client.client(mac=self.hex_id, tipo=Tipo.AJUDA, hora=hora)
             except:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
+                self.salva_reenvio(Tipo.AJUDA, hora)
                 try:
                     if not self.reenvio:
                         self.t_reenvio.init(period=300000, mode=Timer.PERIODIC, callback=self.reenviar)
@@ -154,6 +163,8 @@ class Device:
                     pass
         except:
             reset()
+        finally:
+            self.alimentacao.init(period=15000, mode=Timer.ONE_SHOT, callback=self.ativa)
 
     def bateria(self, t):
         tensao = 2 * self.p33.read() * 3.3 / 1023
@@ -161,19 +172,50 @@ class Device:
             self.avisa()
             sleep(2)
             self.desliga_aviso()
+            hora = [0, 0]
             try:
                 hora = (RTC().datetime()[4], RTC().datetime()[5])
+            except:
+                pass
+            try:
                 self.client.client(mac=self.hex_id, tipo=Tipo.BATERIA, hora=hora)
             except:
                 self.avisa()
                 sleep(7)
                 self.desliga_aviso()
+                self.salva_reenvio(Tipo.BATERIA, hora)
                 try:
                     if not self.reenvio:
                         self.t_reenvio.init(period=300000, mode=Timer.PERIODIC, callback=self.reenviar)
                         self.reenvio = True
                 except:
                     pass
+
+    def salva_reenvio(self, tipo, horas):
+        try:
+            f = open('estado.json', 'r')
+            l = ujson.loads(f.read())
+            f.close()
+        except:
+            l = {}
+        flag = True
+        for item in l.values():
+            if item['tipo'] == tipo:
+                flag = False
+                item['chamadas'] += 1
+                break
+        if flag:
+            l.update({len(l): {
+                "tipo": Tipo.Ajuda,
+                "chamadas": 1,
+                "horas": horas[0],
+                "minutos": horas[1]
+            }})
+        f = open('estado.json', 'w')
+        f.write(ujson.dumps(l))
+        f.close()
+        del l
+        del flag
 
     def reenviar(self, t):
         try:
