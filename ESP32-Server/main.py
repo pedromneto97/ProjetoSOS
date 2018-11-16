@@ -201,11 +201,8 @@ class Device:
                 hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
                 minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
                 chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
-                if contador == 1:
-                    self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas)
-                elif contador > 1:
-                    self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
-                                      multiplos=True)
+                self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
+                                  posicao=True)
         except:
             if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
                     self.lista[Tipo.BATERIA]) > 0:
@@ -290,11 +287,9 @@ class Device:
             if contador == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
-            elif contador == 1:
-                self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas)
-            elif contador > 1:
+            else:
                 self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
-                                  multiplos=True)
+                                  posicao=True)
         except:
             if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
                     self.lista[Tipo.BATERIA]) > 0:
