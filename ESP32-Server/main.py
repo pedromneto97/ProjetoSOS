@@ -65,6 +65,22 @@ class Device:
         escreve_SOS(self.oled)
         self.oled.show()
 
+        try:
+            f = open('estado.json', 'r')
+            l = ujson.loads(f.read())
+            print(l)
+            self.lista[Tipo.EMERGENCIA] = l[Tipo.EMERGENCIA]
+            self.iterador['tamanho'][Tipo.EMERGENCIA] = len(l[Tipo.EMERGENCIA])
+            self.lista[Tipo.AJUDA] = l[Tipo.AJUDA]
+            self.iterador['tamanho'][Tipo.AJUDA] = len(l[Tipo.AJUDA])
+            self.lista[Tipo.BATERIA] = l[Tipo.BATERIA]
+            self.iterador['tamanho'][Tipo.BATERIA] = len(l[Tipo.BATERIA])
+            self.iterador['tamanho']['total'] = len(l[Tipo.BATERIA]) + len(l[Tipo.AJUDA]) + len(l[Tipo.EMERGENCIA])
+            f.close()
+            remove("estado.json")
+        except:
+            pass
+
         self.bateria_timer = Timer(1)
         self.bateria_timer.init(period=1800000, mode=Timer.PERIODIC, callback=self.bateria)
 
@@ -396,16 +412,9 @@ def main():
                 device.oled.show()
                 boot = False
                 # Try para verificar se existe um arquivo com o estado da última vez
-                try:
-                    f = open('estado.json', 'r')
-                    l = ujson.loads(f.read())
-                    device.lista[Tipo.EMERGENCIA] = l[Tipo.EMERGENCIA]
-                    device.lista[Tipo.AJUDA] = l[Tipo.AJUDA]
-                    device.lista[Tipo.BATERIA] = l[Tipo.BATERIA]
-                    f.close()
+                if device.iterador['tamanho']['total'] > 0:
                     device.proximo(flag=False)
-                    remove("estado.json")
-                except:
+                else:
                     device.oled.fill(0)
                     device.oled.text("Nenhum pedido", 0, 32)
                     device.oled.show()
