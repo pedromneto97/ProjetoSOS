@@ -244,20 +244,14 @@ class Device:
                 # Caso for o último elemento da lista, muda pra próxima lista com a prioridade
                 if len(self.lista[self.iterador['tipo']]) == self.iterador['iterador']:
                     if len(self.lista[Tipo.EMERGENCIA]) > 0:
-                        self.iterador = {
-                            'tipo': Tipo.EMERGENCIA,
-                            'iterador': 0
-                        }
+                        self.iterador['tipo'] = Tipo.EMERGENCIA
+                        self.iterador['iterador'] = 0
                     elif len(self.lista[Tipo.AJUDA]) > 0:
-                        self.iterador = {
-                            'tipo': Tipo.AJUDA,
-                            'iterador': 0
-                        }
+                        self.iterador['tipo'] = Tipo.AJUDA
+                        self.iterador['iterador'] = 0
                     elif len(self.lista[Tipo.BATERIA]) > 0:
-                        self.iterador = {
-                            'tipo': Tipo.BATERIA,
-                            'iterador': 0
-                        }
+                        self.iterador['tipo'] = Tipo.BATERIA
+                        self.iterador['iterador'] = 0
                 tipo = self.iterador['tipo']
                 nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
                 quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
@@ -276,10 +270,8 @@ class Device:
                         contador += len(valor)
                     elif len(valor) > 0:
                         contador += len(valor)
-                        self.iterador = {
-                            'tipo': chave,
-                            'iterador': 0
-                        }
+                        self.iterador['tipo'] = chave
+                        self.iterador['iterador'] = 0
                         tipo = chave
                         nome = self.cadastrados[valor[0]['id']]['nome']
                         quarto = self.cadastrados[valor[0]['id']]['quarto']
@@ -334,20 +326,10 @@ class Device:
                     'chamadas': 1
                 })
             i = next(i for i, valor in enumerate(self.lista[Tipo.BATERIA]) if valor['id'] == self.hex_id)
-            self.iterador = {
-                'tipo': Tipo.BATERIA,
-                'iterador': i
-            }
-            contador = 0
-            for chave, valor in self.lista.items():
-                if len(valor) > 0:
-                    contador += len(valor)
-            if contador > 1:
-                contador = True
-            else:
-                contador = False
+            self.iterador['tipo'] = Tipo.BATERIA
+            self.iterador['iterador'] = i
             self.escreve_oled(tipo=Tipo.BATERIA, nome=self.cadastrados[self.hex_id]['nome'], hora=hora, minuto=minuto,
-                              chamadas=chamadas, multiplos=contador)
+                              chamadas=chamadas, posicao=True)
             self.reinicia_inativo()
             self.desliga_aviso()
 
