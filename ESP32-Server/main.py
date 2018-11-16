@@ -389,6 +389,10 @@ class Device:
             return self.iterador['tamanho'][Tipo.EMERGENCIA] + self.iterador['tamanho'][
                 Tipo.AJUDA] + self.iterador['iterador'] + 1
 
+    def ordenar(self):
+        for chave, valor in self.lista.items():
+            valor.sort(key=lambda x: [x['horas'], x['minutos']])
+
 
 def main():
     device = Device()
