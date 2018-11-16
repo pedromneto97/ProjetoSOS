@@ -83,6 +83,7 @@ class Server:
                                 'chamadas': l['chamadas']
                             })
                             device.altera_tamanho(l['tipo'], True)
+                            device.ordenar()
                         del flag
                     else:
                         device.desliga_aviso()
