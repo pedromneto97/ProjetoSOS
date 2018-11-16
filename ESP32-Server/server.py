@@ -89,19 +89,13 @@ class Server:
                         conn.close()
                         continue
                     device.reinicia_inativo()
-                    contador = 0
                     ind = next(i for i, valor in enumerate(device.lista[l['tipo']]) if valor['id'] == l['id'])
-                    device.iterador = {
-                        'tipo': l['tipo'],
-                        'iterador': ind
-                    }
-                    print(str(ind))
-                    for chave, valor in device.lista.items():
-                        contador += len(valor)
+                    device.iterador['tipo'] = l['tipo']
+                    device.iterador['iterador'] = ind
                     device.escreve_oled(tipo=l['tipo'], nome=device.cadastrados[l['id']]['nome'],
                                         quarto=device.cadastrados[l['id']]['quarto'], hora=l['horas'],
-                                        minuto=l['minutos'],
-                                        chamadas=l['chamadas'], multiplos=contador > 1)
+                                        minuto=l['minutos'], chamadas=l['chamadas'],
+                                        posicao=True)
                     device.oled.show()
                     sleep_ms(300)
                     device.desliga_aviso()
