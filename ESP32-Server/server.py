@@ -82,6 +82,7 @@ class Server:
                                 'minutos': l['minutos'],
                                 'chamadas': l['chamadas']
                             })
+                            device.altera_tamanho(l['tipo'], True)
                         del flag
                     else:
                         device.desliga_aviso()
