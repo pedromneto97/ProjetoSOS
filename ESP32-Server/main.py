@@ -240,6 +240,7 @@ class Device:
             # Caso na minha lista atual tenha mais de 2 elementos
             elif len(self.lista[self.iterador['tipo']]) > 1:
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
+                self.altera_tamanho(self.iterador['tipo'])
                 # Caso for o último elemento da lista, muda pra próxima lista com a prioridade
                 if len(self.lista[self.iterador['tipo']]) == self.iterador['iterador']:
                     if len(self.lista[Tipo.EMERGENCIA]) > 0:
@@ -267,6 +268,7 @@ class Device:
                     contador += len(valor)
             else:
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
+                self.altera_tamanho(self.iterador['tipo'])
                 for chave, valor in self.lista.items():
                     if chave == self.iterador['tipo']:
                         continue
