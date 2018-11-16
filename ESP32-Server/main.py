@@ -27,6 +27,12 @@ class Device:
         }
         self.iterador = {
             'tipo': Tipo.EMERGENCIA,
+            'tamanho': {
+                Tipo.EMERGENCIA: 0,
+                Tipo.AJUDA: 0,
+                Tipo.BATERIA: 0,
+                'total': 0
+            },
             'iterador': -1
         }
 
