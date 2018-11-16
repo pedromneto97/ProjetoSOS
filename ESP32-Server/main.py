@@ -386,6 +386,25 @@ class Device:
     def desliga_aviso(self):
         self.p19.value(0)
 
+    # Incrementa ou decrementa o tamanho da lista
+    def altera_tamanho(self, tipo, incrementa=False):
+        if incrementa:
+            self.iterador['tamanho'][tipo] += 1
+            self.iterador['tamanho']['total'] += 1
+        else:
+            self.iterador['tamanho'][tipo] -= 1
+            self.iterador['tamanho']['total'] -= 1
+
+    # Função que busca a posição real de determinado iterador  na lista
+    def posicao_absoluta(self):
+        if self.iterador['tipo'] == Tipo.EMERGENCIA:
+            return self.iterador['iterador'] + 1
+        elif self.iterador['tipo'] == Tipo.AJUDA:
+            return self.iterador['tamanho'][Tipo.EMERGENCIA] + self.iterador['iterador'] + 1
+        elif self.iterador['tipo'] == Tipo.BATERIA:
+            return self.iterador['tamanho'][Tipo.EMERGENCIA] + self.iterador['tamanho'][
+                Tipo.AJUDA] + self.iterador['iterador'] + 1
+
 
 def main():
     device = Device()
