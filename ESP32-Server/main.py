@@ -334,7 +334,7 @@ class Device:
             self.desliga_aviso()
 
     def escreve_oled(self, tipo=None, nome=None, quarto=None, hora=None, minuto=None, chamadas=None, scroll=False,
-                     rm=False, multiplos=False):
+                     rm=False, posicao=False):
         self.oled.fill(0)
         if not scroll:
             if not (tipo is None):
@@ -347,8 +347,10 @@ class Device:
                 self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), 0, 30)
             if not (chamadas is None):
                 self.oled.text(str(chamadas), 110, 55)
-            if multiplos:
-                self.oled.text("+", 110, 0)
+            if posicao:
+                self.oled.text(
+                    "{:02d}".format(self.posicao_absoluta()) + "/" + "{:02d}".format(self.iterador['tamanho']['total']),
+                    88, 0)
             self.oled.show()
         else:
             if rm:
