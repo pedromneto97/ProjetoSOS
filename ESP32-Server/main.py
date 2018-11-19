@@ -349,12 +349,75 @@ class Device:
                     88, 0)
             self.oled.show()
         else:
+            # SCROLL para direita
             if rm:
-                pass
-                # Scroll para a direita
+                if self.iterador['tamanho']['total'] == 0:
+                    for i in range(1, 33):
+                        self.oled.fill(0)
+                        # Anterior
+                        self.oled.text(anterior['tipo'], 0 + i * 4, 0)
+                        self.oled.text("Nome: " + self.cadastrados[anterior['id']]['nome'], 0 + i * 4, 10)
+                        self.oled.text("Quarto: " + str(self.cadastrados[anterior['id']]['quarto']), 0 + i * 4, 20)
+                        self.oled.text("Horario: {:02d}:{:02d}".format(anterior['horas'], anterior['minutos']),
+                                       0 + i * 4,
+                                       30)
+                        self.oled.text(str(anterior['chamadas']), 110 + i * 4, 55)
+                        self.oled.text(
+                            "{:02d}".format(anterior['posicao']) + "/" + "{:02d}".format(
+                                self.iterador['tamanho']['total'] + 1),
+                            88 + i * 4, 0)
+                        # Novo
+                        self.oled.text("Nenhum pedido", -128 + i * 4, 30)
+                        self.oled.show()
+                else:
+                    for i in range(1, 33):
+                        self.oled.fill(0)
+                        # Anterior
+                        self.oled.text(anterior['tipo'], 0 + i * 4, 0)
+                        self.oled.text("Nome: " + self.cadastrados[anterior['id']]['nome'], 0 + i * 4, 10)
+                        self.oled.text("Quarto: " + str(self.cadastrados[anterior['id']]['quarto']), 0 + i * 4, 20)
+                        self.oled.text("Horario: {:02d}:{:02d}".format(anterior['horas'], anterior['minutos']),
+                                       0 + i * 4, 30)
+                        self.oled.text(str(anterior['chamadas']), 110 + i * 4, 55)
+                        self.oled.text(
+                            "{:02d}".format(anterior['posicao']) + "/" + "{:02d}".format(
+                                self.iterador['tamanho']['total'] + 1),
+                            88 + i * 4, 0)
+                        # Novo
+                        self.oled.text(tipo, -128 + i * 4, 0)
+                        self.oled.text("Nome: " + nome, -128 + i * 4, 10)
+                        self.oled.text("Quarto: " + str(quarto), -128 + i * 4, 20)
+                        self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), -128 + i * 4, 30)
+                        self.oled.text(str(chamadas), -18 + i * 4, 55)
+                        self.oled.text(
+                            "{:02d}".format(self.posicao_absoluta()) + "/" + "{:02d}".format(
+                                self.iterador['tamanho']['total']),
+                            -40 + i * 4, 0)
+                        self.oled.show()
             else:
-                pass
-                # Scroll para baixo
+                for i in range(1, 18):
+                    self.oled.fill(0)
+                    # Anterior
+                    self.oled.text(anterior['tipo'], 0, 0 + i * 4)
+                    self.oled.text("Nome: " + self.cadastrados[anterior['id']]['nome'], 0, 10 + i * 4)
+                    self.oled.text("Quarto: " + str(self.cadastrados[anterior['id']]['quarto']), 0, 20 + i * 4)
+                    self.oled.text("Horario: {:02d}:{:02d}".format(anterior['horas'], anterior['minutos']), 0,
+                                   30 + i * 4)
+                    self.oled.text(str(anterior['chamadas']), 110, 55 + i * 4)
+                    self.oled.text(
+                        "{:02d}".format(anterior['posicao']) + "/" + "{:02d}".format(
+                            self.iterador['tamanho']['total']),
+                        88, 0 + i * 4)
+                    # Novo
+                    self.oled.text(tipo, 0, -68 + i * 4)
+                    self.oled.text("Nome: " + nome, 0, -58 + i * 4)
+                    self.oled.text("Quarto: " + str(quarto), 0, -48 + i * 4)
+                    self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), 0, -38 + i * 4)
+                    self.oled.text(str(chamadas), 110, -13 + i * 4)
+                    self.oled.text(
+                        "{:02d}".format(self.posicao_absoluta()) + "/" + "{:02d}".format(
+                            self.iterador['tamanho']['total']), 88, -68 + i * 4)
+                    self.oled.show()
 
     def inativo(self, t):
         t.deinit()
