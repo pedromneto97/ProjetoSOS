@@ -250,14 +250,17 @@ class Device:
                     elif self.iterador['tamanho'][Tipo.BATERIA] > 0:
                         self.iterador['tipo'] = Tipo.BATERIA
                         self.iterador['iterador'] = 0
-                tipo = self.iterador['tipo']
-                nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
-                quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
-                hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
-                minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
-                chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
-                for chave, valor in self.lista.items():
-                    contador += len(valor)
+                    else:
+                        self.iterador['tipo'] = Tipo.EMERGENCIA
+                        self.iterador['iterador'] = -1
+                if self.iterador['iterador'] > -1:
+                    tipo = self.iterador['tipo']
+                    nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
+                    quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']][
+                        'quarto']
+                    hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
+                    minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
+                    chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
             else:
                 anterior = self.anterior()
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
