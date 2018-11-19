@@ -329,19 +329,19 @@ class Device:
             self.reinicia_inativo()
             self.desliga_aviso()
 
-    def escreve_oled(self, tipo=None, nome=None, quarto=None, hora=None, minuto=None, chamadas=None, scroll=False,
-                     rm=False, posicao=False):
-        self.oled.fill(0)
-        if not scroll:
-            if not (tipo is None):
+    def escreve_oled(self, tipo='', nome='', quarto='', hora=-1, minuto=-1, chamadas=0, rm=False, posicao=False,
+                     anterior={}):
+        if not bool(anterior):
+            self.oled.fill(0)
+            if tipo:
                 self.oled.text(tipo, 0, 0)
-            if not (nome is None):
+            if nome:
                 self.oled.text("Nome: " + nome, 0, 10)
-            if not (quarto is None):
+            if quarto > -1:
                 self.oled.text("Quarto: " + str(quarto), 0, 20)
-            if not (hora is None) or not (minuto is None):
+            if hora > -1 and minuto > -1:
                 self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), 0, 30)
-            if not (chamadas is None):
+            if chamadas > 0:
                 self.oled.text(str(chamadas), 110, 55)
             if posicao:
                 self.oled.text(
