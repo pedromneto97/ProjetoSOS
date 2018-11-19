@@ -65,26 +65,8 @@ class Device:
         escreve_SOS(self.oled)
         self.oled.show()
 
-        try:
-            f = open('estado.json', 'r')
-            l = ujson.loads(f.read())
-            print(l)
-            self.lista[Tipo.EMERGENCIA] = l[Tipo.EMERGENCIA]
-            self.iterador['tamanho'][Tipo.EMERGENCIA] = len(l[Tipo.EMERGENCIA])
-            self.lista[Tipo.AJUDA] = l[Tipo.AJUDA]
-            self.iterador['tamanho'][Tipo.AJUDA] = len(l[Tipo.AJUDA])
-            self.lista[Tipo.BATERIA] = l[Tipo.BATERIA]
-            self.iterador['tamanho'][Tipo.BATERIA] = len(l[Tipo.BATERIA])
-            self.iterador['tamanho']['total'] = len(l[Tipo.BATERIA]) + len(l[Tipo.AJUDA]) + len(l[Tipo.EMERGENCIA])
-            f.close()
-            remove("estado.json")
-        except:
-            pass
-
         self.bateria_timer = Timer(1)
         self.bateria_timer.init(period=1800000, mode=Timer.PERIODIC, callback=self.bateria)
-
-        # TODO-me implementar scroll
 
         # Buzzer
         self.p19 = Pin(19, Pin.OUT)
@@ -125,6 +107,23 @@ class Device:
             self.t_boot.deinit
         except:
             pass
+
+        # Recupera estado anterior
+        try:
+            f = open('estado.json', 'r')
+            l = ujson.loads(f.read())
+            f.close()
+            self.lista[Tipo.EMERGENCIA] = l[Tipo.EMERGENCIA]
+            self.iterador['tamanho'][Tipo.EMERGENCIA] = len(l[Tipo.EMERGENCIA])
+            self.lista[Tipo.AJUDA] = l[Tipo.AJUDA]
+            self.iterador['tamanho'][Tipo.AJUDA] = len(l[Tipo.AJUDA])
+            self.lista[Tipo.BATERIA] = l[Tipo.BATERIA]
+            self.iterador['tamanho'][Tipo.BATERIA] = len(l[Tipo.BATERIA])
+            self.iterador['tamanho']['total'] = len(l[Tipo.BATERIA]) + len(l[Tipo.AJUDA]) + len(l[Tipo.EMERGENCIA])
+            remove("estado.json")
+        except:
+            pass
+
         # Botão de próximo
         self.p2 = Pin(2, Pin.IN, Pin.PULL_DOWN)
         self.p2.irq(trigger=Pin.IRQ_RISING, handler=self.proximo)
@@ -166,16 +165,15 @@ class Device:
                     return
             enable_irq(irq)
             self.reinicia_inativo()
-            contador = 0
             self.oled.fill(0)
-            for chave, valor in self.lista.items():
-                contador += len(valor)
-            if contador == 0:
+            if self.iterador['tamanho']['total'] == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
-            elif len(self.lista[self.iterador['tipo']]) <= self.iterador['iterador'] + 1:
+                return
+            elif self.iterador['tamanho'][self.iterador['tipo']] <= self.iterador['iterador'] + 1:
+                anterior = self.anterior()
                 # Verifica para cada tipo, para evitar problemas se o iterador tivesse no meio
-                # então foi feito caso a caso FOcando na prioridade
+                # então foi feito caso a caso focando na prioridade
                 if self.iterador['tipo'] == Tipo.EMERGENCIA:
                     if len(self.lista[Tipo.AJUDA]) > 0:
                         self.iterador['tipo'] = Tipo.AJUDA
@@ -193,16 +191,16 @@ class Device:
                         self.iterador['tipo'] = Tipo.AJUDA
                 self.iterador['iterador'] = 0
             else:
+                anterior = self.anterior()
                 self.iterador['iterador'] += 1
-            if contador > 0:
-                tipo = self.iterador['tipo']
-                nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
-                quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
-                hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
-                minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
-                chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
-                self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
-                                  posicao=True)
+            tipo = self.iterador['tipo']
+            nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
+            quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
+            hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
+            minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
+            chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
+            self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
+                              posicao=True, anterior=anterior)
         except:
             if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
                     self.lista[Tipo.BATERIA]) > 0:
@@ -225,51 +223,52 @@ class Device:
             enable_irq(irq)
             self.reinicia_inativo()
             self.oled.fill(0)
-            contador = 0
-            tipo = None
-            nome = None
-            quarto = None
-            chamadas = None
-            hora = None
-            minuto = None
+            tipo = ''
+            nome = ''
+            quarto = -1
+            chamadas = 0
+            hora = -1
+            minuto = -1
+            anterior = {}
             # Caso não tenha nada na lista
-            if len(self.lista[Tipo.EMERGENCIA]) == 0 and len(self.lista[Tipo.AJUDA]) == 0 and len(
-                    self.lista[Tipo.BATERIA]) == 0:
+            if self.iterador['tamanho']['total'] == 0:
                 self.oled.text("Nenhum pedido", 0, 32)
                 self.oled.show()
             # Caso na minha lista atual tenha mais de 2 elementos
-            elif len(self.lista[self.iterador['tipo']]) > 1:
+            elif self.iterador['tamanho'][self.iterador['tipo']] > 1:
+                anterior = self.anterior()
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
                 self.altera_tamanho(self.iterador['tipo'])
                 # Caso for o último elemento da lista, muda pra próxima lista com a prioridade
-                if len(self.lista[self.iterador['tipo']]) == self.iterador['iterador']:
-                    if len(self.lista[Tipo.EMERGENCIA]) > 0:
+                if self.iterador['tamanho'][self.iterador['tipo']] == self.iterador['iterador']:
+                    if self.iterador['tamanho'][Tipo.EMERGENCIA] > 0:
                         self.iterador['tipo'] = Tipo.EMERGENCIA
                         self.iterador['iterador'] = 0
-                    elif len(self.lista[Tipo.AJUDA]) > 0:
+                    elif self.iterador['tamanho'][Tipo.AJUDA] > 0:
                         self.iterador['tipo'] = Tipo.AJUDA
                         self.iterador['iterador'] = 0
-                    elif len(self.lista[Tipo.BATERIA]) > 0:
+                    elif self.iterador['tamanho'][Tipo.BATERIA] > 0:
                         self.iterador['tipo'] = Tipo.BATERIA
                         self.iterador['iterador'] = 0
-                tipo = self.iterador['tipo']
-                nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
-                quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['quarto']
-                hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
-                minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
-                chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
-                for chave, valor in self.lista.items():
-                    contador += len(valor)
+                    else:
+                        self.iterador['tipo'] = Tipo.EMERGENCIA
+                        self.iterador['iterador'] = -1
+                if self.iterador['iterador'] > -1:
+                    tipo = self.iterador['tipo']
+                    nome = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']]['nome']
+                    quarto = self.cadastrados[self.lista[self.iterador['tipo']][self.iterador['iterador']]['id']][
+                        'quarto']
+                    hora = self.lista[self.iterador['tipo']][self.iterador['iterador']]['horas']
+                    minuto = self.lista[self.iterador['tipo']][self.iterador['iterador']]['minutos']
+                    chamadas = self.lista[self.iterador['tipo']][self.iterador['iterador']]['chamadas']
             else:
+                anterior = self.anterior()
                 del self.lista[self.iterador['tipo']][self.iterador['iterador']]
                 self.altera_tamanho(self.iterador['tipo'])
                 for chave, valor in self.lista.items():
                     if chave == self.iterador['tipo']:
                         continue
-                    if contador > 0 and len(valor) > 0:
-                        contador += len(valor)
-                    elif len(valor) > 0:
-                        contador += len(valor)
+                    if len(valor) > 0:
                         self.iterador['tipo'] = chave
                         self.iterador['iterador'] = 0
                         tipo = chave
@@ -278,15 +277,11 @@ class Device:
                         hora = valor[0]['horas']
                         minuto = valor[0]['minutos']
                         chamadas = valor[0]['chamadas']
-            if contador == 0:
-                self.oled.text("Nenhum pedido", 0, 32)
-                self.oled.show()
-            else:
-                self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
-                                  posicao=True)
+                        break
+            self.escreve_oled(tipo=tipo, nome=nome, quarto=quarto, hora=hora, minuto=minuto, chamadas=chamadas,
+                              posicao=True, rm=True, anterior=anterior)
         except:
-            if len(self.lista[Tipo.EMERGENCIA]) > 0 or len(self.lista[Tipo.AJUDA]) > 0 or len(
-                    self.lista[Tipo.BATERIA]) > 0:
+            if self.iterador['tamanho']['total'] > 0:
                 try:
                     f = open('estado.json', 'w')
                     f.write(ujson.dumps(self.lista))
@@ -326,26 +321,27 @@ class Device:
                     'chamadas': 1
                 })
             i = next(i for i, valor in enumerate(self.lista[Tipo.BATERIA]) if valor['id'] == self.hex_id)
+            anterior = self.anterior()
             self.iterador['tipo'] = Tipo.BATERIA
             self.iterador['iterador'] = i
             self.escreve_oled(tipo=Tipo.BATERIA, nome=self.cadastrados[self.hex_id]['nome'], hora=hora, minuto=minuto,
-                              chamadas=chamadas, posicao=True)
+                              chamadas=chamadas, posicao=True, anterior=anterior)
             self.reinicia_inativo()
             self.desliga_aviso()
 
-    def escreve_oled(self, tipo=None, nome=None, quarto=None, hora=None, minuto=None, chamadas=None, scroll=False,
-                     rm=False, posicao=False):
-        self.oled.fill(0)
-        if not scroll:
-            if not (tipo is None):
+    def escreve_oled(self, tipo='', nome='', quarto='', hora=-1, minuto=-1, chamadas=0, rm=False, posicao=False,
+                     anterior={}):
+        if not bool(anterior):
+            self.oled.fill(0)
+            if tipo:
                 self.oled.text(tipo, 0, 0)
-            if not (nome is None):
+            if nome:
                 self.oled.text("Nome: " + nome, 0, 10)
-            if not (quarto is None):
+            if quarto > -1:
                 self.oled.text("Quarto: " + str(quarto), 0, 20)
-            if not (hora is None) or not (minuto is None):
+            if hora > -1 and minuto > -1:
                 self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), 0, 30)
-            if not (chamadas is None):
+            if chamadas > 0:
                 self.oled.text(str(chamadas), 110, 55)
             if posicao:
                 self.oled.text(
@@ -353,12 +349,75 @@ class Device:
                     88, 0)
             self.oled.show()
         else:
+            # SCROLL para direita
             if rm:
-                pass
-                # Scroll para a direita
+                if self.iterador['tamanho']['total'] == 0:
+                    for i in range(1, 33):
+                        self.oled.fill(0)
+                        # Anterior
+                        self.oled.text(anterior['tipo'], 0 + i * 4, 0)
+                        self.oled.text("Nome: " + self.cadastrados[anterior['id']]['nome'], 0 + i * 4, 10)
+                        self.oled.text("Quarto: " + str(self.cadastrados[anterior['id']]['quarto']), 0 + i * 4, 20)
+                        self.oled.text("Horario: {:02d}:{:02d}".format(anterior['horas'], anterior['minutos']),
+                                       0 + i * 4,
+                                       30)
+                        self.oled.text(str(anterior['chamadas']), 110 + i * 4, 55)
+                        self.oled.text(
+                            "{:02d}".format(anterior['posicao']) + "/" + "{:02d}".format(
+                                self.iterador['tamanho']['total'] + 1),
+                            88 + i * 4, 0)
+                        # Novo
+                        self.oled.text("Nenhum pedido", -128 + i * 4, 30)
+                        self.oled.show()
+                else:
+                    for i in range(1, 33):
+                        self.oled.fill(0)
+                        # Anterior
+                        self.oled.text(anterior['tipo'], 0 + i * 4, 0)
+                        self.oled.text("Nome: " + self.cadastrados[anterior['id']]['nome'], 0 + i * 4, 10)
+                        self.oled.text("Quarto: " + str(self.cadastrados[anterior['id']]['quarto']), 0 + i * 4, 20)
+                        self.oled.text("Horario: {:02d}:{:02d}".format(anterior['horas'], anterior['minutos']),
+                                       0 + i * 4, 30)
+                        self.oled.text(str(anterior['chamadas']), 110 + i * 4, 55)
+                        self.oled.text(
+                            "{:02d}".format(anterior['posicao']) + "/" + "{:02d}".format(
+                                self.iterador['tamanho']['total'] + 1),
+                            88 + i * 4, 0)
+                        # Novo
+                        self.oled.text(tipo, -128 + i * 4, 0)
+                        self.oled.text("Nome: " + nome, -128 + i * 4, 10)
+                        self.oled.text("Quarto: " + str(quarto), -128 + i * 4, 20)
+                        self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), -128 + i * 4, 30)
+                        self.oled.text(str(chamadas), -18 + i * 4, 55)
+                        self.oled.text(
+                            "{:02d}".format(self.posicao_absoluta()) + "/" + "{:02d}".format(
+                                self.iterador['tamanho']['total']),
+                            -40 + i * 4, 0)
+                        self.oled.show()
             else:
-                pass
-                # Scroll para baixo
+                for i in range(1, 18):
+                    self.oled.fill(0)
+                    # Anterior
+                    self.oled.text(anterior['tipo'], 0, 0 + i * 4)
+                    self.oled.text("Nome: " + self.cadastrados[anterior['id']]['nome'], 0, 10 + i * 4)
+                    self.oled.text("Quarto: " + str(self.cadastrados[anterior['id']]['quarto']), 0, 20 + i * 4)
+                    self.oled.text("Horario: {:02d}:{:02d}".format(anterior['horas'], anterior['minutos']), 0,
+                                   30 + i * 4)
+                    self.oled.text(str(anterior['chamadas']), 110, 55 + i * 4)
+                    self.oled.text(
+                        "{:02d}".format(anterior['posicao']) + "/" + "{:02d}".format(
+                            self.iterador['tamanho']['total']),
+                        88, 0 + i * 4)
+                    # Novo
+                    self.oled.text(tipo, 0, -68 + i * 4)
+                    self.oled.text("Nome: " + nome, 0, -58 + i * 4)
+                    self.oled.text("Quarto: " + str(quarto), 0, -48 + i * 4)
+                    self.oled.text("Horario: {:02d}:{:02d}".format(hora, minuto), 0, -38 + i * 4)
+                    self.oled.text(str(chamadas), 110, -13 + i * 4)
+                    self.oled.text(
+                        "{:02d}".format(self.posicao_absoluta()) + "/" + "{:02d}".format(
+                            self.iterador['tamanho']['total']), 88, -68 + i * 4)
+                    self.oled.show()
 
     def inativo(self, t):
         t.deinit()
@@ -392,6 +451,16 @@ class Device:
     def ordenar(self):
         for chave, valor in self.lista.items():
             valor.sort(key=lambda x: [x['horas'], x['minutos']])
+
+    def anterior(self):
+        if self.iterador['iterador'] < 0 or self.iterador['tamanho'][self.iterador['tipo']] == 0:
+            return {}
+        anterior = {
+            'tipo': self.iterador['tipo'],
+            'posicao': self.posicao_absoluta()
+        }
+        anterior.update(self.lista[self.iterador['tipo']][self.iterador['iterador']])
+        return anterior
 
 
 def main():

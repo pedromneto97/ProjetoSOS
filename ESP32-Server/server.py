@@ -91,13 +91,18 @@ class Server:
                         continue
                     device.reinicia_inativo()
                     ind = next(i for i, valor in enumerate(device.lista[l['tipo']]) if valor['id'] == l['id'])
-                    device.iterador['tipo'] = l['tipo']
-                    device.iterador['iterador'] = ind
-                    device.escreve_oled(tipo=l['tipo'], nome=device.cadastrados[l['id']]['nome'],
-                                        quarto=device.cadastrados[l['id']]['quarto'], hora=l['horas'],
-                                        minuto=l['minutos'], chamadas=l['chamadas'],
-                                        posicao=True)
-                    device.oled.show()
+                    if device.iterador['tipo'] != l['tipo'] or device.iterador['iterador'] != ind:
+                        anterior = device.anterior()
+                        device.iterador['tipo'] = l['tipo']
+                        device.iterador['iterador'] = ind
+                        device.escreve_oled(tipo=l['tipo'], nome=device.cadastrados[l['id']]['nome'],
+                                            quarto=device.cadastrados[l['id']]['quarto'], hora=l['horas'],
+                                            minuto=l['minutos'], chamadas=int(l['chamadas']), posicao=True,
+                                            anterior=anterior)
+                    else:
+                        device.escreve_oled(tipo=l['tipo'], nome=device.cadastrados[l['id']]['nome'],
+                                            quarto=device.cadastrados[l['id']]['quarto'], hora=l['horas'],
+                                            minuto=l['minutos'], chamadas=int(l['chamadas']), posicao=True)
                     sleep_ms(300)
                     device.desliga_aviso()
                     collect()
