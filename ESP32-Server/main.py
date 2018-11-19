@@ -389,6 +389,16 @@ class Device:
         for chave, valor in self.lista.items():
             valor.sort(key=lambda x: [x['horas'], x['minutos']])
 
+    def anterior(self):
+        if self.iterador['iterador'] < 0 or self.iterador['tamanho'][self.iterador['tipo']] == 0:
+            return {}
+        anterior = {
+            'tipo': self.iterador['tipo'],
+            'posicao': self.posicao_absoluta()
+        }
+        anterior.update(self.lista[self.iterador['tipo']][self.iterador['iterador']])
+        return anterior
+
 
 def main():
     device = Device()
