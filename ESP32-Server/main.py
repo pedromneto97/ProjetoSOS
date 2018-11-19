@@ -84,8 +84,6 @@ class Device:
         self.bateria_timer = Timer(1)
         self.bateria_timer.init(period=1800000, mode=Timer.PERIODIC, callback=self.bateria)
 
-        # TODO-me implementar scroll
-
         # Buzzer
         self.p19 = Pin(19, Pin.OUT)
         self.p19.value(0)
