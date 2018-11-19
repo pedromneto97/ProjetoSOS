@@ -65,22 +65,6 @@ class Device:
         escreve_SOS(self.oled)
         self.oled.show()
 
-        try:
-            f = open('estado.json', 'r')
-            l = ujson.loads(f.read())
-            print(l)
-            self.lista[Tipo.EMERGENCIA] = l[Tipo.EMERGENCIA]
-            self.iterador['tamanho'][Tipo.EMERGENCIA] = len(l[Tipo.EMERGENCIA])
-            self.lista[Tipo.AJUDA] = l[Tipo.AJUDA]
-            self.iterador['tamanho'][Tipo.AJUDA] = len(l[Tipo.AJUDA])
-            self.lista[Tipo.BATERIA] = l[Tipo.BATERIA]
-            self.iterador['tamanho'][Tipo.BATERIA] = len(l[Tipo.BATERIA])
-            self.iterador['tamanho']['total'] = len(l[Tipo.BATERIA]) + len(l[Tipo.AJUDA]) + len(l[Tipo.EMERGENCIA])
-            f.close()
-            remove("estado.json")
-        except:
-            pass
-
         self.bateria_timer = Timer(1)
         self.bateria_timer.init(period=1800000, mode=Timer.PERIODIC, callback=self.bateria)
 
@@ -123,6 +107,23 @@ class Device:
             self.t_boot.deinit
         except:
             pass
+
+        # Recupera estado anterior
+        try:
+            f = open('estado.json', 'r')
+            l = ujson.loads(f.read())
+            f.close()
+            self.lista[Tipo.EMERGENCIA] = l[Tipo.EMERGENCIA]
+            self.iterador['tamanho'][Tipo.EMERGENCIA] = len(l[Tipo.EMERGENCIA])
+            self.lista[Tipo.AJUDA] = l[Tipo.AJUDA]
+            self.iterador['tamanho'][Tipo.AJUDA] = len(l[Tipo.AJUDA])
+            self.lista[Tipo.BATERIA] = l[Tipo.BATERIA]
+            self.iterador['tamanho'][Tipo.BATERIA] = len(l[Tipo.BATERIA])
+            self.iterador['tamanho']['total'] = len(l[Tipo.BATERIA]) + len(l[Tipo.AJUDA]) + len(l[Tipo.EMERGENCIA])
+            remove("estado.json")
+        except:
+            pass
+
         # Botão de próximo
         self.p2 = Pin(2, Pin.IN, Pin.PULL_DOWN)
         self.p2.irq(trigger=Pin.IRQ_RISING, handler=self.proximo)
