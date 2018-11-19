@@ -125,8 +125,10 @@ class Device:
     # Alimenta o botão novamente
     def ativa(self, p):
         try:
+            irq = disable_irq()
             self.p4.value(1)
             p.deinit()
+            enable_irq(irq)
         except:
             reset()
 
